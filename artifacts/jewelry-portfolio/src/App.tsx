@@ -3,6 +3,7 @@ import { Cursor } from "./components/Cursor";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { Navbar } from "./components/Navbar";
 import { HeroSection } from "./components/HeroSection";
+import { AboutSection } from "./components/AboutSection";
 import { GallerySection } from "./components/GallerySection";
 import { ContactSection } from "./components/ContactSection";
 import { Footer } from "./components/Footer";
@@ -24,6 +25,7 @@ export default function App() {
       <Navbar />
       <main>
         <HeroSection />
+        <AboutSection />
         <GallerySection />
         <ContactSection />
       </main>

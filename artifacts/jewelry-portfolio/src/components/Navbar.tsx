@@ -23,11 +23,12 @@ export function Navbar() {
       <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
         <a href="#home" className="nav-logo" onClick={(e) => { e.preventDefault(); scrollTo("home"); }}>
           <img src="/assets/logo.png" alt="Amirul Jewelry CAD Studio logo" />
-          <span className="nav-logo-text">Amirul Studio</span>
+          <span className="nav-logo-text">Amirul CAD Studio</span>
         </a>
 
         <ul className="nav-links">
           <li><a href="#home" onClick={(e) => { e.preventDefault(); scrollTo("home"); }}>Home</a></li>
+          <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollTo("about"); }}>About</a></li>
           <li><a href="#designs" onClick={(e) => { e.preventDefault(); scrollTo("designs"); }}>Designs</a></li>
           <li><a href="#contact" onClick={(e) => { e.preventDefault(); scrollTo("contact"); }}>Contact</a></li>
         </ul>
@@ -63,6 +64,7 @@ export function Navbar() {
 
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
         <a href="#home" onClick={(e) => { e.preventDefault(); scrollTo("home"); }}>Home</a>
+        <a href="#about" onClick={(e) => { e.preventDefault(); scrollTo("about"); }}>About</a>
         <a href="#designs" onClick={(e) => { e.preventDefault(); scrollTo("designs"); }}>Designs</a>
         <a href="#contact" onClick={(e) => { e.preventDefault(); scrollTo("contact"); }}>Contact</a>
         <a

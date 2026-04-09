@@ -1,6 +1,6 @@
 /* ============================================================
    Admin Panel – Amirul CAD Studio
-   Dark luxury theme matching the portfolio
+   Fully responsive dark luxury theme
    ============================================================ */
 
 :root {
@@ -19,7 +19,7 @@
   --sidebar-w: 240px;
   --danger: #c0392b;
   --danger-dim: rgba(192, 57, 43, 0.15);
-  --success: #27ae60;
+  --topbar-h: 56px;
 }
 
 * {
@@ -32,7 +32,7 @@ html, body, #root {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
@@ -47,6 +47,7 @@ html, body, #root {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  padding: 16px;
 }
 
 .login-bg {
@@ -62,10 +63,10 @@ html, body, #root {
   z-index: 1;
   background: var(--bg-card);
   border: 1px solid var(--border-gold);
-  border-radius: 12px;
-  padding: 40px;
-  width: 380px;
-  max-width: 90vw;
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(201, 168, 76, 0.05);
 }
 
@@ -76,7 +77,7 @@ html, body, #root {
 }
 
 .login-logo img {
-  height: 60px;
+  height: 64px;
   width: auto;
 }
 
@@ -92,14 +93,14 @@ html, body, #root {
 .login-sub {
   text-align: center;
   color: var(--gold);
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   margin-bottom: 32px;
 }
 
 /* ============================================================
-   ADMIN LAYOUT
+   LAYOUT SHELL
    ============================================================ */
 .admin-layout {
   display: flex;
@@ -107,6 +108,7 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* Sidebar */
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
@@ -115,19 +117,37 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 200;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 199;
+  backdrop-filter: blur(2px);
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 18px;
+  gap: 10px;
+  padding: 18px 16px;
   border-bottom: 1px solid var(--border);
+  min-height: 72px;
 }
 
 .sidebar-logo img {
-  height: 36px;
+  height: 34px;
   width: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-logo > div {
+  flex: 1;
+  min-width: 0;
 }
 
 .sidebar-brand {
@@ -136,6 +156,9 @@ html, body, #root {
   font-weight: 700;
   color: var(--gold);
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-sub {
@@ -146,19 +169,30 @@ html, body, #root {
   letter-spacing: 0.08em;
 }
 
+.sidebar-close {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
 .sidebar-nav {
   flex: 1;
-  padding: 12px 10px;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow-y: auto;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 11px 12px;
   border-radius: 8px;
   width: 100%;
   background: none;
@@ -169,6 +203,7 @@ html, body, #root {
   cursor: pointer;
   text-align: left;
   transition: background 0.15s, color 0.15s;
+  min-height: 44px;
 }
 
 .nav-item:hover {
@@ -185,10 +220,11 @@ html, body, #root {
 .nav-icon {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .sidebar-footer {
-  padding: 12px 10px;
+  padding: 10px 8px;
   border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -200,7 +236,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   width: 100%;
   background: none;
@@ -210,6 +246,7 @@ html, body, #root {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   text-decoration: none;
+  min-height: 40px;
 }
 
 .view-site-btn:hover {
@@ -222,6 +259,15 @@ html, body, #root {
   color: #e55;
 }
 
+/* Body + Main */
+.admin-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
 .admin-main {
   flex: 1;
   overflow-y: auto;
@@ -229,27 +275,90 @@ html, body, #root {
 }
 
 /* ============================================================
+   MOBILE TOP BAR (hidden on desktop)
+   ============================================================ */
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--topbar-h);
+  padding: 0 16px;
+  background: #0E0E0E;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-logo {
+  height: 28px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.hamburger-btn,
+.mobile-logout-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 38px;
+  min-height: 38px;
+  justify-content: center;
+}
+
+.hamburger-btn:hover,
+.mobile-logout-btn:hover {
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+
+/* ============================================================
    PAGE CONTENT
    ============================================================ */
 .page-content {
-  padding: 32px;
+  padding: 28px 32px;
   max-width: 1200px;
+  width: 100%;
 }
 
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .page-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.4px;
   margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .page-sub {
@@ -274,7 +383,7 @@ html, body, #root {
 }
 
 .form-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -289,12 +398,13 @@ html, body, #root {
   border-radius: 8px;
   color: var(--text);
   font-size: 14px;
-  padding: 10px 14px;
+  padding: 11px 14px;
   outline: none;
   width: 100%;
   transition: border-color 0.15s;
   font-family: inherit;
   resize: vertical;
+  min-height: 44px;
 }
 
 .form-input:focus,
@@ -321,9 +431,9 @@ html, body, #root {
 .form-error {
   color: #ff6b6b;
   font-size: 13px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: rgba(255, 107, 107, 0.1);
-  border-radius: 6px;
+  border-radius: 8px;
   border-left: 3px solid #ff6b6b;
 }
 
@@ -331,6 +441,7 @@ html, body, #root {
   font-size: 12px;
   color: var(--text-dim);
   margin-top: 4px;
+  line-height: 1.5;
 }
 
 .form-row {
@@ -342,32 +453,32 @@ html, body, #root {
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
+  gap: 24px;
   margin-bottom: 24px;
 }
 
 .form-col {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .form-section {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 24px;
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
 .form-section-title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 2px;
@@ -378,6 +489,7 @@ html, body, #root {
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* ============================================================
@@ -388,7 +500,7 @@ html, body, #root {
   color: #0a0a0a;
   border: none;
   border-radius: 8px;
-  padding: 10px 22px;
+  padding: 11px 22px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -396,11 +508,16 @@ html, body, #root {
   transition: opacity 0.15s, transform 0.1s;
   white-space: nowrap;
   font-family: inherit;
+  min-height: 42px;
 }
 
 .btn-gold:hover:not(:disabled) {
-  opacity: 0.92;
+  opacity: 0.9;
   transform: translateY(-1px);
+}
+
+.btn-gold:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-gold:disabled {
@@ -413,12 +530,13 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-muted);
-  padding: 10px 18px;
+  padding: 11px 18px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   font-family: inherit;
+  min-height: 42px;
 }
 
 .btn-ghost:hover {
@@ -431,11 +549,12 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-muted);
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   font-family: inherit;
+  min-height: 34px;
 }
 
 .btn-ghost-sm:hover {
@@ -448,11 +567,12 @@ html, body, #root {
   border: 1px solid var(--border-gold);
   border-radius: 6px;
   color: var(--gold);
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
   font-family: inherit;
+  min-height: 34px;
 }
 
 .btn-outline-sm:hover {
@@ -464,11 +584,12 @@ html, body, #root {
   border: 1px solid rgba(192, 57, 43, 0.3);
   border-radius: 6px;
   color: #e55;
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
   font-family: inherit;
+  min-height: 34px;
 }
 
 .btn-danger-sm:hover:not(:disabled) {
@@ -486,15 +607,15 @@ html, body, #root {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 22px 20px;
+  padding: 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -508,7 +629,7 @@ html, body, #root {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -517,18 +638,18 @@ html, body, #root {
 .dash-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
 .dash-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 22px 20px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -567,6 +688,7 @@ html, body, #root {
   margin-left: auto;
   font-size: 22px;
   color: var(--text-dim);
+  flex-shrink: 0;
 }
 
 .recent-section {
@@ -574,12 +696,12 @@ html, body, #root {
 }
 
 .section-heading {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 16px;
+  letter-spacing: 0.1em;
+  margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
@@ -593,11 +715,11 @@ html, body, #root {
 .design-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   transition: border-color 0.15s;
 }
 
@@ -656,7 +778,7 @@ html, body, #root {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .filter-btn {
@@ -664,11 +786,12 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 20px;
   color: var(--text-muted);
-  padding: 6px 14px;
+  padding: 7px 14px;
   font-size: 12px;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s;
+  min-height: 36px;
 }
 
 .filter-btn:hover {
@@ -684,8 +807,8 @@ html, body, #root {
 
 .designs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
 }
 
 .design-card {
@@ -703,7 +826,7 @@ html, body, #root {
 
 .design-card-img {
   position: relative;
-  height: 180px;
+  height: 160px;
   background: var(--bg-hover);
   overflow: hidden;
 }
@@ -731,9 +854,9 @@ html, body, #root {
 
 .design-card-cat {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.7);
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.75);
   border: 1px solid var(--border-gold);
   color: var(--gold);
   font-size: 10px;
@@ -744,31 +867,31 @@ html, body, #root {
 }
 
 .design-card-body {
-  padding: 16px;
+  padding: 14px;
 }
 
 .design-card-code {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   margin-bottom: 4px;
 }
 
 .design-card-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .design-card-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .design-card-actions {
@@ -781,16 +904,15 @@ html, body, #root {
    ============================================================ */
 .img-mode-tabs {
   display: flex;
-  gap: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .img-mode-tab {
   flex: 1;
-  padding: 8px;
+  padding: 9px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -798,6 +920,7 @@ html, body, #root {
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s, color 0.15s;
+  min-height: 38px;
 }
 
 .img-mode-tab:hover {
@@ -811,7 +934,8 @@ html, body, #root {
 
 .img-preview-box {
   width: 100%;
-  height: 200px;
+  aspect-ratio: 4/3;
+  max-height: 200px;
   background: var(--bg-hover);
   border: 1px dashed var(--border);
   border-radius: 10px;
@@ -835,7 +959,7 @@ html, body, #root {
 .upload-zone {
   border: 2px dashed var(--border);
   border-radius: 10px;
-  padding: 28px 20px;
+  padding: 24px 16px;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s;
@@ -861,9 +985,11 @@ html, body, #root {
    ============================================================ */
 .tab-nav {
   display: flex;
-  gap: 0;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
+  margin-bottom: 22px;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tab-btn {
@@ -878,6 +1004,8 @@ html, body, #root {
   font-family: inherit;
   transition: color 0.15s, border-color 0.15s;
   margin-bottom: -1px;
+  white-space: nowrap;
+  min-height: 44px;
 }
 
 .tab-btn:hover {
@@ -922,27 +1050,61 @@ html, body, #root {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ============================================================
+   RESPONSIVE — TABLET (≤1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-content {
+    padding: 22px 24px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE (≤768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Show mobile topbar, hide sidebar by default */
+  .mobile-topbar {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    width: 280px;
+    z-index: 200;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar-close {
+    display: flex;
+  }
+
+  .dash-actions {
     grid-template-columns: 1fr;
   }
 
@@ -950,15 +1112,79 @@ html, body, #root {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .dash-actions {
+  .page-content {
+    padding: 16px;
+  }
+
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
-  .page-content {
-    padding: 20px;
+  .form-row {
+    grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    display: none;
+  .stat-editor-row {
+    grid-template-columns: 1fr;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .designs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .form-footer {
+    flex-direction: column-reverse;
+  }
+
+  .form-footer .btn-gold,
+  .form-footer .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header .btn-gold {
+    width: 100%;
+    text-align: center;
+  }
+
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .dash-card {
+    padding: 16px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — SMALL MOBILE (≤480px)
+   ============================================================ */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .designs-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .design-card-img {
+    height: 130px;
   }
 }

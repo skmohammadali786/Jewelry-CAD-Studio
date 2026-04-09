@@ -5,21 +5,24 @@ import { requireAdmin } from "../middlewares/auth.js";
 const router = Router();
 
 /* Public: get site content */
-router.get("/content", (_req, res) => {
+router.get("/content", async (_req, res) => {
   try {
-    res.json(getContent());
-  } catch {
+    const content = await getContent();
+    res.json(content);
+  } catch (err) {
+    console.error("GET /content error:", err);
     res.status(500).json({ error: "Failed to read content" });
   }
 });
 
 /* Admin: update site content */
-router.put("/admin/content", requireAdmin, (req, res) => {
+router.put("/admin/content", requireAdmin, async (req, res) => {
   try {
     const body = req.body as SiteContent;
-    saveContent(body);
+    await saveContent(body);
     res.json(body);
-  } catch {
+  } catch (err) {
+    console.error("PUT /admin/content error:", err);
     res.status(500).json({ error: "Failed to update content" });
   }
 });

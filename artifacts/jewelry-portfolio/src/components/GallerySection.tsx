@@ -27,7 +27,8 @@ export function GallerySection() {
   const [designs, setDesigns] = useState<Design[]>(staticDesigns);
 
   useEffect(() => {
-    fetch("/api/designs")
+    const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+    fetch(`${apiBase}/api/designs`)
       .then((r) => r.ok ? r.json() : null)
       .then((data: unknown) => {
         if (Array.isArray(data) && data.length > 0) setDesigns(data as Design[]);

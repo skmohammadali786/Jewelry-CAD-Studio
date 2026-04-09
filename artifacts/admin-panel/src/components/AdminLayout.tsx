@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { clearToken } from "../lib/auth";
 
 interface Props {
@@ -14,6 +15,8 @@ const navItems = [
 ];
 
 export default function AdminLayout({ page, onNavigate, onLogout, children }: Props) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const handleLogout = () => {
     clearToken();
     onLogout();
@@ -21,16 +24,33 @@ export default function AdminLayout({ page, onNavigate, onLogout, children }: Pr
 
   const activePage = page.split("/")[0];
 
+  const handleNav = (id: string) => {
+    onNavigate(id);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="admin-layout">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-logo">
           <img src="/assets/logo.png" alt="Logo" />
           <div>
             <span className="sidebar-brand">Amirul CAD</span>
             <span className="sidebar-sub">Admin Panel</span>
           </div>
+          <button
+            className="sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            <CloseIcon />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -38,7 +58,7 @@ export default function AdminLayout({ page, onNavigate, onLogout, children }: Pr
             <button
               key={item.id}
               className={`nav-item ${activePage === item.id ? "active" : ""}`}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => handleNav(item.id)}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
@@ -64,9 +84,29 @@ export default function AdminLayout({ page, onNavigate, onLogout, children }: Pr
       </aside>
 
       {/* Main content */}
-      <main className="admin-main">
-        {children}
-      </main>
+      <div className="admin-body">
+        {/* Mobile top bar */}
+        <header className="mobile-topbar">
+          <button
+            className="hamburger-btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <HamburgerIcon />
+          </button>
+          <div className="mobile-brand">
+            <img src="/assets/logo.png" alt="Logo" className="mobile-logo" />
+            <span>Amirul CAD Admin</span>
+          </div>
+          <button className="mobile-logout-btn" onClick={handleLogout}>
+            <LogoutIcon />
+          </button>
+        </header>
+
+        <main className="admin-main">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
@@ -85,4 +125,10 @@ function ExternalIcon() {
 }
 function LogoutIcon() {
   return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>;
+}
+function HamburgerIcon() {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
+}
+function CloseIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
 }

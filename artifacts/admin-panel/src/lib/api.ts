@@ -1,4 +1,11 @@
-const BASE = "/api";
+/**
+ * API client for the admin panel.
+ *
+ * In development (Replit): API is at /api (same origin, routed by proxy)
+ * In production (Vercel): Set VITE_API_BASE_URL to your API Vercel project URL
+ *   e.g.  VITE_API_BASE_URL=https://your-api.vercel.app
+ */
+const BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "") + "/api";
 
 function getToken(): string | null {
   return localStorage.getItem("aj_admin_token");

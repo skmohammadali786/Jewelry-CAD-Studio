@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { HeroCanvas } from "./HeroCanvas";
+import { useContent } from "../hooks/use-content";
 
 export function HeroSection() {
   const contentRef = useRef<HTMLDivElement>(null);
+  const { hero } = useContent();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -37,15 +39,13 @@ export function HeroSection() {
           style={{ transform: "translateY(20px)" }}
         />
         <p className="hero-eyebrow" style={{ transform: "translateY(20px)" }}>
-          Premium Jewelry CAD Design
+          {hero.eyebrow}
         </p>
         <h1 className="hero-title" style={{ transform: "translateY(20px)" }}>
-          Amirul <span>Jewelry</span>
-          <br />
-          CAD Studio
+          {hero.title}
         </h1>
         <p className="hero-subtitle" style={{ transform: "translateY(20px)" }}>
-          Precision CAD Designs for Modern Jewelry
+          {hero.subtitle}
         </p>
         <button className="hero-cta" onClick={scrollToDesigns} style={{ transform: "translateY(20px)" }}>
           <DiamondIcon />

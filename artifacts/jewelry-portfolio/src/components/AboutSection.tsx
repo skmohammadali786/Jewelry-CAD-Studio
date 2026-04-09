@@ -1,15 +1,9 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useContent } from "../hooks/use-content";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const stats = [
-  { value: "500+", label: "Designs Created" },
-  { value: "8+", label: "Years Experience" },
-  { value: "100%", label: "Client Satisfaction" },
-  { value: "48h", label: "Average Turnaround" },
-];
 
 const capabilities = [
   {
@@ -45,6 +39,7 @@ const capabilities = [
 ];
 
 export function AboutSection() {
+  const { about } = useContent();
   const sectionRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const capRef = useRef<HTMLDivElement>(null);
@@ -55,7 +50,6 @@ export function AboutSection() {
   useEffect(() => {
     const ctx = gsap.context(() => {
 
-      /* ── Section eyebrow + title dramatic clip-path reveal ── */
       gsap.fromTo(eyebrowRef.current,
         { opacity: 0, y: 30, letterSpacing: "8px" },
         {
@@ -65,7 +59,6 @@ export function AboutSection() {
         }
       );
 
-      /* Title words stagger */
       if (titleRef.current) {
         const words = titleRef.current.querySelectorAll(".word");
         gsap.fromTo(words,
@@ -78,7 +71,6 @@ export function AboutSection() {
         );
       }
 
-      /* Divider grows left→right */
       gsap.fromTo(dividerRef.current,
         { scaleX: 0, transformOrigin: "left" },
         {
@@ -87,7 +79,6 @@ export function AboutSection() {
         }
       );
 
-      /* Left text column — slide + fade */
       gsap.fromTo(".about-text-col",
         { opacity: 0, x: -100, skewY: 2 },
         {
@@ -97,7 +88,6 @@ export function AboutSection() {
         }
       );
 
-      /* Paragraphs stagger in after */
       gsap.fromTo(".about-paragraph",
         { opacity: 0, y: 40 },
         {
@@ -107,7 +97,6 @@ export function AboutSection() {
         }
       );
 
-      /* Signature slide from left */
       gsap.fromTo(".about-signature",
         { opacity: 0, x: -40 },
         {
@@ -116,7 +105,6 @@ export function AboutSection() {
         }
       );
 
-      /* Right image column — scale + fade reveal */
       gsap.fromTo(".about-image-col",
         { opacity: 0, scale: 0.9, x: 80 },
         {
@@ -126,7 +114,6 @@ export function AboutSection() {
         }
       );
 
-      /* Floating badge pops in */
       gsap.fromTo(".about-floating-badge",
         { opacity: 0, scale: 0.5, rotation: -8 },
         {
@@ -136,7 +123,6 @@ export function AboutSection() {
         }
       );
 
-      /* Stats — dramatic scale+fade with stagger */
       if (statsRef.current) {
         gsap.fromTo(statsRef.current.querySelectorAll(".about-stat"),
           { opacity: 0, y: 60, scale: 0.85 },
@@ -147,7 +133,6 @@ export function AboutSection() {
           }
         );
 
-        /* Stat values count up */
         statsRef.current.querySelectorAll(".about-stat-value").forEach((el) => {
           const raw = (el as HTMLElement).textContent || "";
           const numStr = raw.replace(/[^0-9]/g, "");
@@ -168,7 +153,6 @@ export function AboutSection() {
         });
       }
 
-      /* Capability cards — fan-in from bottom with rotation */
       if (capRef.current) {
         gsap.fromTo(capRef.current.querySelectorAll(".cap-card"),
           { opacity: 0, y: 80, scale: 0.88, rotateX: 15 },
@@ -181,7 +165,6 @@ export function AboutSection() {
         );
       }
 
-      /* Parallax on main image */
       gsap.to(".about-main-img",
         {
           yPercent: -12,
@@ -204,34 +187,32 @@ export function AboutSection() {
     <section id="about" className="about-section" ref={sectionRef}>
       <div className="about-gold-line" />
 
-      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "80px" }}>
-        <span className="section-eyebrow" ref={eyebrowRef}>Our Story</span>
+        <span className="section-eyebrow" ref={eyebrowRef}>{about.eyebrow}</span>
         <h2 className="section-title" ref={titleRef} style={{ perspective: "800px" }}>
-          <span className="word" style={{ display: "inline-block" }}>Where Technology</span>{" "}
-          <span className="word" style={{ display: "inline-block", color: "var(--gold)", fontStyle: "italic" }}>Meets Artistry</span>
+          {about.heading.split(" ").map((word, i, arr) => (
+            <span key={i} className="word" style={{
+              display: "inline-block",
+              color: i >= Math.floor(arr.length / 2) ? "var(--gold)" : undefined,
+              fontStyle: i >= Math.floor(arr.length / 2) ? "italic" : undefined,
+              marginRight: i < arr.length - 1 ? "0.3em" : 0,
+            }}>{word}</span>
+          ))}
         </h2>
         <div className="section-divider" ref={dividerRef} style={{ margin: "24px auto 0" }} />
       </div>
 
-      {/* Split */}
       <div className="about-split">
         <div className="about-text-col">
-          <p className="about-paragraph">
-            At <strong style={{ color: "var(--gold)" }}>Amirul Jewelry CAD Studio</strong>, we bridge the gap between traditional jewelry craftsmanship and modern digital precision. Founded in the heart of Kolkata — India's jewelry capital — we specialize in creating master-quality CAD designs that bring your most ambitious jewelry visions to life.
-          </p>
-          <p className="about-paragraph">
-            Every design we produce is a marriage of mathematical precision and artistic sensibility. We use industry-leading parametric modeling tools to craft pieces that not only look breathtaking on screen but translate flawlessly into physical jewelry — whether cast in gold, silver, or platinum.
-          </p>
-          <p className="about-paragraph">
-            Our clients range from independent jewelers and boutique brands to large-scale manufacturers across India and internationally. We pride ourselves on fast turnaround, transparent communication, and designs that exceed expectations every time.
-          </p>
+          {about.paragraphs.map((para, i) => (
+            <p key={i} className="about-paragraph">{para}</p>
+          ))}
 
           <div className="about-signature">
             <div className="about-sig-line" />
             <div>
-              <p className="about-sig-name">Amirul</p>
-              <p className="about-sig-title">Lead CAD Designer & Founder</p>
+              <p className="about-sig-name">{about.signerName}</p>
+              <p className="about-sig-title">{about.signerTitle}</p>
             </div>
           </div>
         </div>
@@ -241,7 +222,9 @@ export function AboutSection() {
             <img src="/assets/images/AJ-002.jpg" alt="Jewelry CAD Design process" className="about-main-img" />
             <div className="about-img-overlay" />
             <div className="about-floating-badge">
-              <span className="about-badge-num">500+</span>
+              <span className="about-badge-num">
+                {about.stats.find(s => s.label.toLowerCase().includes("design"))?.value ?? "500+"}
+              </span>
               <span className="about-badge-label">Designs Delivered</span>
             </div>
           </div>
@@ -252,9 +235,8 @@ export function AboutSection() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="about-stats" ref={statsRef}>
-        {stats.map((stat) => (
+        {about.stats.map((stat) => (
           <div key={stat.label} className="about-stat">
             <span className="about-stat-value">{stat.value}</span>
             <span className="about-stat-label">{stat.label}</span>
@@ -262,7 +244,6 @@ export function AboutSection() {
         ))}
       </div>
 
-      {/* Capabilities */}
       <div className="about-capabilities">
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
           <span className="section-eyebrow">What We Do</span>

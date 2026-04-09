@@ -26,8 +26,15 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
     body: body != null ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error((err as { error?: string }).error || "Request failed");
+    const text = await res.text().catch(() => "");
+    let errMsg = `HTTP ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`;
+    try {
+      const json = JSON.parse(text);
+      if (json?.error) errMsg = json.error;
+    } catch {
+      if (text) errMsg = text.slice(0, 120);
+    }
+    throw new Error(errMsg);
   }
   return res.json() as Promise<T>;
 }

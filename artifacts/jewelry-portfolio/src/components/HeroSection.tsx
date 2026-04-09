@@ -79,10 +79,10 @@ export function HeroSection() {
   // Counter animation on stats when they enter view
   useEffect(() => {
     const statDefs = [
-      { cls: ".hero-stat-0", end: 500, suffix: "+" },
+      { cls: ".hero-stat-0", end: 400, suffix: "+" },
       { cls: ".hero-stat-1", end: 48,  suffix: "h" },
       { cls: ".hero-stat-2", end: 100, suffix: "%" },
-      { cls: ".hero-stat-3", end: 7,   suffix: "+" },
+      { cls: ".hero-stat-3", end: 6,   suffix: "+" },
     ];
 
     const obs = new IntersectionObserver((entries) => {
@@ -173,13 +173,13 @@ export function HeroSection() {
       {/* Floating stat badges */}
       <div className="hero-float-stat hero-float-stat--tl" style={{ opacity: 0 }}>
         <DiamondDecorIcon />
-        <span className="hero-stat-0 hero-float-val">500+</span>
-        <span className="hero-float-lbl">Designs Delivered</span>
+        <span className="hero-stat-0 hero-float-val">400+</span>
+        <span className="hero-float-lbl">Designs Created</span>
       </div>
       <div className="hero-float-stat hero-float-stat--tr" style={{ opacity: 0 }}>
         <DiamondDecorIcon />
         <span className="hero-stat-1 hero-float-val">48h</span>
-        <span className="hero-float-lbl">Avg. Turnaround</span>
+        <span className="hero-float-lbl">Average Turnaround</span>
       </div>
       <div className="hero-float-stat hero-float-stat--bl" style={{ opacity: 0 }}>
         <DiamondDecorIcon />
@@ -188,7 +188,7 @@ export function HeroSection() {
       </div>
       <div className="hero-float-stat hero-float-stat--br" style={{ opacity: 0 }}>
         <DiamondDecorIcon />
-        <span className="hero-stat-3 hero-float-val">7+</span>
+        <span className="hero-stat-3 hero-float-val">6+</span>
         <span className="hero-float-lbl">Years Experience</span>
       </div>
 

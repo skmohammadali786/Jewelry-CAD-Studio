@@ -63,6 +63,45 @@ router.put("/admin/designs/:id", requireAdmin, async (req, res) => {
   }
 });
 
+/* Admin: bulk import designs */
+router.post("/admin/designs/bulk", requireAdmin, async (req, res) => {
+  try {
+    const rows = req.body as Array<Omit<Design, "id">>;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      res.status(400).json({ error: "No designs provided" });
+      return;
+    }
+    const results: Design[] = [];
+    const errors: Array<{ row: number; error: string }> = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row.name?.trim()) {
+        errors.push({ row: i + 1, error: "Missing name" });
+        continue;
+      }
+      try {
+        const saved = await saveNewDesign({
+          id: `aj-${Date.now()}-${i}`,
+          code: row.code?.trim() || `AJ-${Date.now()}`,
+          name: row.name.trim(),
+          category: row.category?.trim() || "Ring",
+          material: row.material?.trim() || "",
+          style: row.style?.trim() || "",
+          description: row.description?.trim() || "",
+          image: row.image?.trim() || "",
+        });
+        results.push(saved);
+      } catch (err) {
+        errors.push({ row: i + 1, error: "Failed to save" });
+      }
+    }
+    res.json({ imported: results.length, errors, designs: results });
+  } catch (err) {
+    console.error("POST /admin/designs/bulk error:", err);
+    res.status(500).json({ error: "Bulk import failed" });
+  }
+});
+
 /* Admin: delete design */
 router.delete("/admin/designs/:id", requireAdmin, async (req, res) => {
   try {

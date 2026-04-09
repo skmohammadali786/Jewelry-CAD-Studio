@@ -43,6 +43,10 @@ export const api = {
     req<Design>("PUT", `/admin/designs/${id}`, data),
   deleteDesign: (id: string) =>
     req<{ success: boolean }>("DELETE", `/admin/designs/${id}`),
+  bulkImportDesigns: (rows: Array<Omit<Design, "id">>) =>
+    req<{ imported: number; errors: Array<{ row: number; error: string }>; designs: Design[] }>(
+      "POST", "/admin/designs/bulk", rows
+    ),
 
   getContent: () => req<SiteContent>("GET", "/content"),
   updateContent: (data: SiteContent) =>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type Design } from "../lib/api";
+import BulkImportModal from "../components/BulkImportModal";
 
 interface Props {
   onNavigate: (page: string) => void;
@@ -12,6 +13,7 @@ export default function DesignManager({ onNavigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [filter, setFilter] = useState("All");
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -26,7 +28,7 @@ export default function DesignManager({ onNavigate }: Props) {
     try {
       await api.deleteDesign(id);
       setDesigns((prev) => prev.filter((d) => d.id !== id));
-    } catch (err) {
+    } catch {
       alert("Failed to delete design.");
     } finally {
       setDeleting(null);
@@ -43,9 +45,17 @@ export default function DesignManager({ onNavigate }: Props) {
           <h1 className="page-title">Designs</h1>
           <p className="page-sub">{designs.length} design{designs.length !== 1 ? "s" : ""} in portfolio</p>
         </div>
-        <button className="btn-gold" onClick={() => onNavigate("designs/new")}>
-          + Add Design
-        </button>
+        <div className="page-header-actions">
+          <button
+            className="btn-outline-sm bulk-import-btn"
+            onClick={() => setShowBulkImport(true)}
+          >
+            ⬆ Import from Excel
+          </button>
+          <button className="btn-gold" onClick={() => onNavigate("designs/new")}>
+            + Add Design
+          </button>
+        </div>
       </div>
 
       {/* Filter pills */}
@@ -65,10 +75,15 @@ export default function DesignManager({ onNavigate }: Props) {
         <p className="loading-text">Loading designs…</p>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <p>No designs found. Add your first design!</p>
-          <button className="btn-gold" onClick={() => onNavigate("designs/new")}>
-            + Add Design
-          </button>
+          <p>No designs found. Add your first design or import from Excel!</p>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button className="btn-outline-sm" onClick={() => setShowBulkImport(true)}>
+              ⬆ Import from Excel
+            </button>
+            <button className="btn-gold" onClick={() => onNavigate("designs/new")}>
+              + Add Design
+            </button>
+          </div>
         </div>
       ) : (
         <div className="designs-grid">
@@ -105,6 +120,16 @@ export default function DesignManager({ onNavigate }: Props) {
             </div>
           ))}
         </div>
+      )}
+
+      {showBulkImport && (
+        <BulkImportModal
+          onClose={() => setShowBulkImport(false)}
+          onImported={(newDesigns) => {
+            setDesigns((prev) => [...prev, ...newDesigns]);
+            setShowBulkImport(false);
+          }}
+        />
       )}
     </div>
   );

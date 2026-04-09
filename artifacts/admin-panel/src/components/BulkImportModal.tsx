@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { api, type Design } from "../lib/api";
 
 interface Props {
@@ -13,22 +13,86 @@ const COLUMNS = ["code", "name", "category", "material", "style", "description",
 const REQUIRED = ["name"];
 const CATEGORIES = ["Ring", "Necklace", "Earrings", "Bracelet", "Pendant", "Other"];
 
-function downloadTemplate() {
-  const ws = XLSX.utils.aoa_to_sheet([
-    COLUMNS,
-    ["AJ-001", "Celestial Solitaire Ring", "Ring", "18K Gold / Platinum", "Contemporary Solitaire", "A beautiful solitaire ring design.", "/assets/images/AJ-001.jpg"],
-    ["AJ-002", "Eternal Bloom Necklace", "Necklace", "18K White Gold", "Floral Elegance", "A statement floral necklace.", "/assets/images/AJ-002.jpg"],
-  ]);
-  ws["!cols"] = COLUMNS.map((c) => ({ wch: c === "description" ? 40 : c === "name" ? 28 : 18 }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Designs");
-  XLSX.writeFile(wb, "designs-template.xlsx");
+async function downloadTemplate() {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Designs");
+
+  ws.columns = COLUMNS.map((col) => ({
+    header: col,
+    key: col,
+    width: col === "description" ? 40 : col === "name" ? 28 : 18,
+  }));
+
+  ws.addRow(["AJ-001", "Celestial Solitaire Ring", "Ring", "18K Gold / Platinum", "Contemporary Solitaire", "A beautiful solitaire ring design.", "/assets/images/AJ-001.jpg"]);
+  ws.addRow(["AJ-002", "Eternal Bloom Necklace", "Necklace", "18K White Gold", "Floral Elegance", "A statement floral necklace.", "/assets/images/AJ-002.jpg"]);
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "designs-template.xlsx";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-function parseRows(data: Record<string, unknown>[]): ParsedRow[] {
+function parseCellValue(cell: ExcelJS.Cell): string {
+  const v = cell.value;
+  if (v === null || v === undefined) return "";
+  if (typeof v === "object" && "richText" in v) {
+    return (v as ExcelJS.CellRichTextValue).richText.map((r) => r.text).join("");
+  }
+  if (typeof v === "object" && "result" in v) {
+    return String((v as ExcelJS.CellFormulaValue).result ?? "");
+  }
+  return String(v);
+}
+
+async function parseExcelFile(buffer: ArrayBuffer): Promise<Record<string, string>[]> {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buffer);
+  const ws = wb.worksheets[0];
+  if (!ws) return [];
+
+  const headers: string[] = [];
+  const rows: Record<string, string>[] = [];
+
+  ws.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) {
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        headers.push(parseCellValue(cell).toLowerCase().trim());
+      });
+    } else {
+      const obj: Record<string, string> = {};
+      row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        const header = headers[colNum - 1];
+        if (header) obj[header] = parseCellValue(cell).trim();
+      });
+      if (Object.values(obj).some((v) => v !== "")) {
+        rows.push(obj);
+      }
+    }
+  });
+
+  return rows;
+}
+
+function parseCsvFile(text: string): Record<string, string>[] {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ""));
+  return lines.slice(1).map((line) => {
+    const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => { obj[h] = values[i] ?? ""; });
+    return obj;
+  });
+}
+
+function parseRows(data: Record<string, string>[]): ParsedRow[] {
   return data.map((row) => {
     const errors: string[] = [];
-    const get = (col: string) => String(row[col] ?? row[col.charAt(0).toUpperCase() + col.slice(1)] ?? "").trim();
+    const get = (col: string) => (row[col] ?? row[col.charAt(0).toUpperCase() + col.slice(1)] ?? "").trim();
 
     const name = get("name");
     const category = get("category");
@@ -62,14 +126,21 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
     setFileName(file.name);
     setResult(null);
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const wb = XLSX.read(data, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
-      setRows(parseRows(json));
-    };
-    reader.readAsArrayBuffer(file);
+
+    if (file.name.endsWith(".csv")) {
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        setRows(parseRows(parseCsvFile(text)));
+      };
+      reader.readAsText(file);
+    } else {
+      reader.onload = async (e) => {
+        const buffer = e.target?.result as ArrayBuffer;
+        const data = await parseExcelFile(buffer);
+        setRows(parseRows(data));
+      };
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -112,7 +183,6 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
 
         {!result ? (
           <>
-            {/* Download template */}
             <div className="bulk-template-row">
               <span className="bulk-template-label">Need the format?</span>
               <button className="btn-outline-sm" onClick={downloadTemplate}>
@@ -120,7 +190,6 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
               </button>
             </div>
 
-            {/* Drop zone */}
             <div
               className={`bulk-dropzone ${dragOver ? "drag-active" : ""} ${rows.length > 0 ? "has-file" : ""}`}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -150,7 +219,6 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
               )}
             </div>
 
-            {/* Column reference */}
             <div className="bulk-columns-ref">
               <span className="bulk-col-label">Required columns:</span>
               {COLUMNS.map((col) => (
@@ -160,7 +228,6 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
               ))}
             </div>
 
-            {/* Preview table */}
             {rows.length > 0 && (
               <>
                 <div className="bulk-preview-header">
@@ -215,7 +282,6 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
             )}
           </>
         ) : (
-          /* Result screen */
           <div className="bulk-result">
             <div className={`bulk-result-icon ${result.imported > 0 ? "success" : "fail"}`}>
               {result.imported > 0 ? "🎉" : "⚠️"}

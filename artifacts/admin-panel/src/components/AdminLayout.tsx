@@ -39,7 +39,7 @@ export default function AdminLayout({ page, onNavigate, onLogout, children }: Pr
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-logo">
-          <img src="/assets/logo.png" alt="Logo" />
+          <img src={`${import.meta.env.BASE_URL}assets/logo.png`} alt="Logo" />
           <div>
             <span className="sidebar-brand">Amirul CAD</span>
             <span className="sidebar-sub">Admin Panel</span>
@@ -68,7 +68,7 @@ export default function AdminLayout({ page, onNavigate, onLogout, children }: Pr
 
         <div className="sidebar-footer">
           <a
-            href="/"
+            href="https://amirul-jewelery-cad-studio.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="view-site-btn"
@@ -95,7 +95,7 @@ export default function AdminLayout({ page, onNavigate, onLogout, children }: Pr
             <HamburgerIcon />
           </button>
           <div className="mobile-brand">
-            <img src="/assets/logo.png" alt="Logo" className="mobile-logo" />
+            <img src={`${import.meta.env.BASE_URL}assets/logo.png`} alt="Logo" className="mobile-logo" />
             <span>Amirul CAD Admin</span>
           </div>
           <button className="mobile-logout-btn" onClick={handleLogout}>

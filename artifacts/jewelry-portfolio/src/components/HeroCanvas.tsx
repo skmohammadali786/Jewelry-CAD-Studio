@@ -5,8 +5,8 @@ export function HeroCanvas() {
   const [webglSupported, setWebglSupported] = useState(true);
 
   useEffect(() => {
-    const testCanvas = document.createElement("canvas");
-    const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+    const test = document.createElement("canvas");
+    const gl = test.getContext("webgl") || test.getContext("experimental-webgl");
     if (!gl) { setWebglSupported(false); return; }
 
     let animId: number;
@@ -25,265 +25,309 @@ export function HeroCanvas() {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setClearColor(0x000000, 0);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.4;
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMappingExposure = 1.6;
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 300);
-      camera.position.set(0, 0, 8);
+      const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 300);
+      camera.position.set(0, 0, 7.5);
 
-      // ── Environment map for reflections ───────────────────────────
+      // ── RICH ENVIRONMENT MAP ─────────────────────────────────────
       const pmrem = new THREE.PMREMGenerator(renderer);
       pmrem.compileEquirectangularShader();
-      const envC = document.createElement("canvas");
-      envC.width = 512; envC.height = 256;
-      const ec = envC.getContext("2d")!;
-      const eg = ec.createLinearGradient(0, 0, 512, 256);
-      eg.addColorStop(0,   "#0a0500");
-      eg.addColorStop(0.2, "#1a0800");
-      eg.addColorStop(0.4, "#c9a84c");
-      eg.addColorStop(0.55,"#ffe8a0");
-      eg.addColorStop(0.7, "#1a0800");
-      eg.addColorStop(1,   "#050200");
-      ec.fillStyle = eg; ec.fillRect(0, 0, 512, 256);
-      const envTex = new THREE.CanvasTexture(envC);
+      const ec = document.createElement("canvas");
+      ec.width = 2048; ec.height = 1024;
+      const ectx = ec.getContext("2d")!;
+      ectx.fillStyle = "#000"; ectx.fillRect(0, 0, 2048, 1024);
+      const envSpots = [
+        { x: 400,  y: 200, r: 320, c: "rgba(255,215,0,0.9)"   },
+        { x: 1600, y: 300, r: 250, c: "rgba(201,168,76,0.8)"  },
+        { x: 1000, y: 500, r: 500, c: "rgba(255,230,120,0.5)" },
+        { x: 200,  y: 700, r: 180, c: "rgba(255,140,0,0.6)"   },
+        { x: 1900, y: 800, r: 140, c: "rgba(255,255,255,0.7)" },
+        { x: 1200, y: 100, r: 200, c: "rgba(255,200,80,0.6)"  },
+      ];
+      envSpots.forEach(({ x, y, r, c }) => {
+        const g = ectx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, c);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ectx.fillStyle = g; ectx.fillRect(0, 0, 2048, 1024);
+      });
+      const envTex = new THREE.CanvasTexture(ec);
       envTex.mapping = THREE.EquirectangularReflectionMapping;
       const envMap = pmrem.fromEquirectangular(envTex).texture;
       scene.environment = envMap;
       pmrem.dispose();
 
-      // ── Lights ─────────────────────────────────────────────────────
-      scene.add(new THREE.AmbientLight(0xfff0d0, 0.4));
-
-      const keyLight = new THREE.DirectionalLight(0xffd080, 3.0);
-      keyLight.position.set(4, 6, 4);
-      keyLight.castShadow = true;
-      scene.add(keyLight);
-
-      const fillLight = new THREE.DirectionalLight(0xc9a84c, 1.5);
-      fillLight.position.set(-4, -2, 2);
+      // ── LIGHTS ───────────────────────────────────────────────────
+      scene.add(new THREE.AmbientLight(0xfff0d0, 0.6));
+      const sunLight = new THREE.DirectionalLight(0xffffff, 3.0);
+      sunLight.position.set(5, 8, 6);
+      scene.add(sunLight);
+      const fillLight = new THREE.DirectionalLight(0xffd080, 1.5);
+      fillLight.position.set(-5, -3, 3);
       scene.add(fillLight);
+      const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
+      rimLight.position.set(0, 0, -8);
+      scene.add(rimLight);
 
-      // Orbiting point lights (3 colored lights that circle the gem)
       const orbitLights = [
-        { light: new THREE.PointLight(0xffd700, 12, 14), radius: 3.5, speed: 0.42, phase: 0,             tilt: 0.6 },
-        { light: new THREE.PointLight(0xff9000, 8,  12), radius: 3.0, speed: -0.31, phase: Math.PI * 0.7, tilt: -0.4 },
-        { light: new THREE.PointLight(0xffffff, 6,  10), radius: 2.8, speed: 0.55, phase: Math.PI * 1.3, tilt: 1.0 },
+        { lt: new THREE.PointLight(0xffd700, 20, 12), r: 3.2, spd:  0.5,  ph: 0,           tilt: 0.5  },
+        { lt: new THREE.PointLight(0xff8800, 14, 10), r: 2.8, spd: -0.35, ph: Math.PI,      tilt: -0.6 },
+        { lt: new THREE.PointLight(0xffffff, 10, 8),  r: 3.0, spd:  0.65, ph: Math.PI/1.5, tilt: 0.8  },
+        { lt: new THREE.PointLight(0xffcc44, 8,  9),  r: 2.5, spd: -0.45, ph: Math.PI/3,   tilt: -0.3 },
       ];
-      orbitLights.forEach(({ light }) => scene.add(light));
+      orbitLights.forEach(({ lt }) => scene.add(lt));
 
-      // ── CENTRAL GEM — polished gold diamond ────────────────────────
-      const gemGeo = new THREE.OctahedronGeometry(1.35, 2);
-      // Squish it into a diamond tablet shape
-      const posArr = gemGeo.attributes.position.array as Float32Array;
-      for (let i = 0; i < posArr.length; i += 3) {
-        if (posArr[i + 1] > 0) posArr[i + 1] *= 0.75; // flatten top
-        else posArr[i + 1] *= 1.1; // elongate bottom
-      }
-      gemGeo.attributes.position.needsUpdate = true;
+      // ── DIAMOND GEOMETRY ─────────────────────────────────────────
+      // Brilliant-cut diamond profile (LatheGeometry rotated around Y axis)
+      const diamondPoints = [
+        new THREE.Vector2(0.01,  1.55),  // apex (tiny non-zero to avoid artifact)
+        new THREE.Vector2(0.52,  1.20),  // upper crown
+        new THREE.Vector2(0.82,  0.70),  // mid crown
+        new THREE.Vector2(1.05,  0.15),  // upper girdle
+        new THREE.Vector2(1.05, -0.10),  // lower girdle
+        new THREE.Vector2(0.75, -0.55),  // upper pavilion
+        new THREE.Vector2(0.45, -1.00),  // mid pavilion
+        new THREE.Vector2(0.01, -1.60),  // culet (bottom tip)
+      ];
+      // 8 segments = octagonal facets = brilliant cut look
+      const gemGeo = new THREE.LatheGeometry(diamondPoints, 8, 0, Math.PI * 2);
       gemGeo.computeVertexNormals();
 
-      const gemMat = new THREE.MeshStandardMaterial({
-        color: 0xc9a84c,
-        metalness: 0.92,
-        roughness: 0.04,
+      const gemMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffd700,
+        metalness: 0.05,
+        roughness: 0.0,
+        transmission: 0.75,
+        thickness: 3.0,
+        ior: 2.42,
         envMap,
-        envMapIntensity: 3.5,
+        envMapIntensity: 4.0,
+        transparent: true,
+        side: THREE.DoubleSide,
       });
       const gem = new THREE.Mesh(gemGeo, gemMat);
-      gem.castShadow = true;
       scene.add(gem);
 
-      // Inner glow core
-      const coreGeo = new THREE.OctahedronGeometry(0.9, 1);
-      const coreMat = new THREE.MeshBasicMaterial({
-        color: 0xffe8a0,
-        transparent: true,
-        opacity: 0.08,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      scene.add(new THREE.Mesh(coreGeo, coreMat));
-
-      // Wireframe shell — counter-rotating
-      const shellGeo = new THREE.OctahedronGeometry(1.45, 2);
-      const shellMat = new THREE.MeshBasicMaterial({
-        color: 0xe8c96d,
+      // Wireframe facet overlay — makes facets visible & glowing
+      const wireMat = new THREE.MeshBasicMaterial({
+        color: 0xffe880,
         wireframe: true,
         transparent: true,
-        opacity: 0.14,
+        opacity: 0.22,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      const shell = new THREE.Mesh(shellGeo, shellMat);
-      scene.add(shell);
+      const wireGem = new THREE.Mesh(gemGeo, wireMat);
+      wireGem.scale.setScalar(1.005);
+      scene.add(wireGem);
 
-      // Outer glow aura (large sphere, back-face, additive)
-      const auraGeo = new THREE.SphereGeometry(3.0, 32, 32);
-      const auraMat = new THREE.MeshBasicMaterial({
-        color: 0xc9a84c,
-        transparent: true,
-        opacity: 0.045,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      scene.add(new THREE.Mesh(auraGeo, auraMat));
-
-      // Secondary pulsing glow
-      const glow2Geo = new THREE.SphereGeometry(1.9, 16, 16);
-      const glow2Mat = new THREE.MeshBasicMaterial({
-        color: 0xffd700,
-        transparent: true,
-        opacity: 0.04,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const glow2 = new THREE.Mesh(glow2Geo, glow2Mat);
-      scene.add(glow2);
-
-      // ── ORBITING RINGS ─────────────────────────────────────────────
-      const ringConfigs = [
-        { r: 2.5,  tube: 0.009, rotX: Math.PI/3.5,  rotZ: 0.1,           speed:  0.28, color: 0xc9a84c, op: 0.55 },
-        { r: 3.4,  tube: 0.006, rotX: -Math.PI/4.5, rotZ: Math.PI/5,     speed: -0.19, color: 0xe8c96d, op: 0.35 },
-        { r: 1.9,  tube: 0.011, rotX: Math.PI/6,    rotZ: -Math.PI/8,    speed:  0.47, color: 0xffd700, op: 0.45 },
-        { r: 4.2,  tube: 0.004, rotX: Math.PI/2.2,  rotZ: Math.PI/3,     speed:  0.14, color: 0xc9a84c, op: 0.18 },
-        { r: 2.1,  tube: 0.007, rotX: -Math.PI/3,   rotZ: -Math.PI/6,    speed: -0.35, color: 0xffe8a0, op: 0.30 },
-      ];
-
-      const rings: { mesh: import("three").Mesh; speed: number; pivot: import("three").Object3D }[] = [];
-      ringConfigs.forEach(({ r, tube, rotX, rotZ, speed, color, op }) => {
-        const geo = new THREE.TorusGeometry(r, tube, 8, 140);
-        const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op,
-          blending: THREE.AdditiveBlending, depthWrite: false });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.rotation.x = rotX;
-        mesh.rotation.z = rotZ;
-        const pivot = new THREE.Object3D();
-        pivot.add(mesh);
-        scene.add(pivot);
-        rings.push({ mesh, speed, pivot });
-      });
-
-      // ── FLOATING MINI GEMS (Instanced) ─────────────────────────────
-      const MINI_COUNT = 20;
-      const miniGeo = new THREE.OctahedronGeometry(0.12, 0);
-      const miniMat = new THREE.MeshStandardMaterial({
-        color: 0xc9a84c, metalness: 0.95, roughness: 0.05, envMap, envMapIntensity: 2,
-      });
-      type MiniGem = {
-        mesh: import("three").Mesh;
-        rotSpeed: import("three").Vector3;
-        floatPhase: number;
-        floatSpeed: number;
-        basePos: import("three").Vector3;
-        orbitRadius: number;
-        orbitSpeed: number;
-        orbitPhase: number;
-        orbitTilt: number;
-      };
-      const miniGems: MiniGem[] = [];
-      for (let i = 0; i < MINI_COUNT; i++) {
-        const scale = Math.random() * 0.9 + 0.4;
-        const mat = miniMat.clone();
-        mat.color.setHex(i % 3 === 0 ? 0xffd700 : i % 3 === 1 ? 0xc9a84c : 0xe8c96d);
-        const m = new THREE.Mesh(miniGeo, mat);
-        m.scale.setScalar(scale);
-        const angle = (i / MINI_COUNT) * Math.PI * 2;
-        const radius = 3.5 + Math.random() * 3.5;
-        m.position.set(
-          Math.cos(angle) * radius,
-          (Math.random() - 0.5) * 7,
-          Math.sin(angle) * radius * 0.6 - 2
-        );
-        scene.add(m);
-        miniGems.push({
-          mesh: m,
-          rotSpeed: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.03,
-            (Math.random() - 0.5) * 0.04,
-            (Math.random() - 0.5) * 0.02,
-          ),
-          floatPhase: Math.random() * Math.PI * 2,
-          floatSpeed: Math.random() * 0.3 + 0.2,
-          basePos: m.position.clone(),
-          orbitRadius: radius,
-          orbitSpeed: (Math.random() - 0.5) * 0.08,
-          orbitPhase: angle,
-          orbitTilt: (Math.random() - 0.5) * 0.8,
-        });
-      }
-
-      // ── STAR FIELD ─────────────────────────────────────────────────
-      const STAR_COUNT = 900;
-      const starPos = new Float32Array(STAR_COUNT * 3);
-      const starSpeeds = new Float32Array(STAR_COUNT);
-      const starPhases = new Float32Array(STAR_COUNT);
-      for (let i = 0; i < STAR_COUNT; i++) {
-        starPos[i*3]   = (Math.random() - 0.5) * 36;
-        starPos[i*3+1] = (Math.random() - 0.5) * 30;
-        starPos[i*3+2] = (Math.random() - 0.5) * 14 - 4;
-        starSpeeds[i]  = Math.random() * 0.5 + 0.1;
-        starPhases[i]  = Math.random() * Math.PI * 2;
-      }
-      const starGeo = new THREE.BufferGeometry();
-      starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-
-      const makeSprite = (col: string, glow: string) => {
-        const c = document.createElement("canvas"); c.width = c.height = 64;
+      // ── BLOOM GLOW SIMULATION ─────────────────────────────────────
+      // Multiple layered circular glow planes give fake HDR bloom
+      const makeGlowTex = (inner: string, mid: string) => {
+        const c = document.createElement("canvas"); c.width = c.height = 256;
         const cx = c.getContext("2d")!;
-        const g = cx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        g.addColorStop(0, col); g.addColorStop(0.3, col);
-        g.addColorStop(0.6, glow); g.addColorStop(1, "rgba(0,0,0,0)");
-        cx.fillStyle = g; cx.fillRect(0, 0, 64, 64);
+        const g = cx.createRadialGradient(128, 128, 0, 128, 128, 128);
+        g.addColorStop(0,    inner);
+        g.addColorStop(0.15, inner);
+        g.addColorStop(0.4,  mid);
+        g.addColorStop(0.75, "rgba(201,168,76,0.03)");
+        g.addColorStop(1,    "rgba(0,0,0,0)");
+        cx.fillStyle = g; cx.fillRect(0, 0, 256, 256);
         return new THREE.CanvasTexture(c);
       };
+      const glowLayers = [
+        { size: 0.7,  op: 0.65, tex: makeGlowTex("rgba(255,255,240,0.9)", "rgba(255,220,80,0.5)") },
+        { size: 1.4,  op: 0.30, tex: makeGlowTex("rgba(255,220,80,0.7)",  "rgba(201,168,76,0.2)") },
+        { size: 2.8,  op: 0.14, tex: makeGlowTex("rgba(255,200,50,0.4)",  "rgba(180,140,30,0.1)") },
+        { size: 5.0,  op: 0.07, tex: makeGlowTex("rgba(201,168,76,0.3)",  "rgba(120,90,20,0.05)")  },
+        { size: 9.0,  op: 0.03, tex: makeGlowTex("rgba(180,130,20,0.2)",  "rgba(80,50,0,0.0)")     },
+        { size: 15.0, op: 0.015,tex: makeGlowTex("rgba(150,100,10,0.15)", "rgba(50,30,0,0.0)")     },
+      ];
+      const glowMeshes = glowLayers.map(({ size, op, tex }) => {
+        const g = new THREE.PlaneGeometry(size, size);
+        const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: op,
+          blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+        const mesh = new THREE.Mesh(g, m);
+        mesh.position.z = 0.1;
+        scene.add(mesh);
+        return { mesh, mat: m };
+      });
 
+      // ── ORBITAL RINGS WITH ENERGY SPARKS ─────────────────────────
+      type RingData = {
+        ring: import("three").Mesh;
+        sparks: import("three").Mesh[];
+        sparkAngles: number[];
+        pivotH: import("three").Object3D;
+        pivotV: import("three").Object3D;
+        speed: number;
+        radius: number;
+      };
+
+      const ringDefs = [
+        { r: 2.3,  tube: 0.015, seg: 160, rotX: Math.PI/3.5,  rotZ: 0.2,           spd:  0.32, col: 0xffd700, op: 0.65, sparks: 2 },
+        { r: 3.0,  tube: 0.010, seg: 180, rotX: -Math.PI/4.2, rotZ: Math.PI/4.5,   spd: -0.22, col: 0xffe880, op: 0.45, sparks: 1 },
+        { r: 1.8,  tube: 0.018, seg: 140, rotX: Math.PI/7,    rotZ: -Math.PI/6,    spd:  0.50, col: 0xffa500, op: 0.55, sparks: 3 },
+        { r: 3.8,  tube: 0.007, seg: 200, rotX: Math.PI/2.1,  rotZ: Math.PI/3.5,   spd:  0.17, col: 0xffd700, op: 0.28, sparks: 1 },
+        { r: 2.6,  tube: 0.012, seg: 170, rotX: -Math.PI/3.2, rotZ: -Math.PI/5.5,  spd: -0.38, col: 0xffcc44, op: 0.40, sparks: 2 },
+      ];
+
+      const rings: RingData[] = ringDefs.map(({ r, tube, seg, rotX, rotZ, spd, col, op, sparks: nSparks }) => {
+        const pivotV = new THREE.Object3D();
+        const pivotH = new THREE.Object3D();
+
+        const rGeo = new THREE.TorusGeometry(r, tube, 10, seg);
+        const rMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op,
+          blending: THREE.AdditiveBlending, depthWrite: false });
+        const ring = new THREE.Mesh(rGeo, rMat);
+        ring.rotation.x = rotX; ring.rotation.z = rotZ;
+        pivotH.add(ring);
+        pivotV.add(pivotH);
+        scene.add(pivotV);
+
+        // Glow ring (slightly larger, more transparent)
+        const glowRGeo = new THREE.TorusGeometry(r, tube * 4, 6, seg);
+        const glowRMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op * 0.25,
+          blending: THREE.AdditiveBlending, depthWrite: false });
+        const glowRing = new THREE.Mesh(glowRGeo, glowRMat);
+        glowRing.rotation.x = rotX; glowRing.rotation.z = rotZ;
+        pivotH.add(glowRing);
+
+        // Sparks travelling along the ring
+        const sparkGeo = new THREE.SphereGeometry(0.06, 8, 8);
+        const sparkMeshes: import("three").Mesh[] = [];
+        const sparkAngles: number[] = [];
+        for (let i = 0; i < nSparks; i++) {
+          const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95,
+            blending: THREE.AdditiveBlending, depthWrite: false });
+          const spark = new THREE.Mesh(sparkGeo, sparkMat);
+          sparkAngles.push((i / nSparks) * Math.PI * 2);
+          // Wrap spark in a sub-object that applies ring's rotation
+          const sparkPivot = new THREE.Object3D();
+          sparkPivot.rotation.x = rotX; sparkPivot.rotation.z = rotZ;
+          sparkPivot.add(spark);
+          pivotH.add(sparkPivot);
+          sparkMeshes.push(spark);
+
+          // Glow around each spark
+          const sGlowGeo = new THREE.SphereGeometry(0.22, 8, 8);
+          const sGlowMat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.4,
+            blending: THREE.AdditiveBlending, depthWrite: false });
+          sparkPivot.add(new THREE.Mesh(sGlowGeo, sGlowMat));
+        }
+
+        return { ring, sparks: sparkMeshes, sparkAngles, pivotH, pivotV, speed: spd, radius: r };
+      });
+
+      // ── BACKGROUND NEBULA PLANES ──────────────────────────────────
+      const makeNebula = (w: number, h: number, color1: string, color2: string) => {
+        const c = document.createElement("canvas"); c.width = 512; c.height = 512;
+        const cx = c.getContext("2d")!;
+        cx.fillStyle = "rgba(0,0,0,0)"; cx.fillRect(0, 0, 512, 512);
+        const g1 = cx.createRadialGradient(200, 200, 0, 200, 200, 200);
+        g1.addColorStop(0, color1); g1.addColorStop(1, "rgba(0,0,0,0)");
+        cx.fillStyle = g1; cx.fillRect(0, 0, 512, 512);
+        const g2 = cx.createRadialGradient(320, 320, 0, 320, 320, 160);
+        g2.addColorStop(0, color2); g2.addColorStop(1, "rgba(0,0,0,0)");
+        cx.fillStyle = g2; cx.fillRect(0, 0, 512, 512);
+        return new THREE.CanvasTexture(c);
+      };
+      const nebulaConfigs = [
+        { x: -6, y: 3,  z: -18, w: 24, h: 18, c1: "rgba(201,168,76,0.12)", c2: "rgba(255,180,50,0.06)", rot: 0.3  },
+        { x: 8,  y: -4, z: -20, w: 22, h: 16, c1: "rgba(255,140,0,0.07)",  c2: "rgba(201,168,76,0.04)", rot: -0.2 },
+        { x: 2,  y: 6,  z: -22, w: 30, h: 20, c1: "rgba(180,120,20,0.05)", c2: "rgba(255,200,60,0.03)", rot: 0.6  },
+      ];
+      nebulaConfigs.forEach(({ x, y, z, w, h, c1, c2, rot }) => {
+        const g = new THREE.PlaneGeometry(w, h);
+        const tex = makeNebula(w, h, c1, c2);
+        const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 1,
+          blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+        const mesh = new THREE.Mesh(g, m);
+        mesh.position.set(x, y, z); mesh.rotation.z = rot;
+        scene.add(mesh);
+      });
+
+      // ── STAR FIELD ───────────────────────────────────────────────
+      const STARS = 1200;
+      const sPosArr = new Float32Array(STARS * 3);
+      const sSpds   = new Float32Array(STARS);
+      const sPhases = new Float32Array(STARS);
+      for (let i = 0; i < STARS; i++) {
+        sPosArr[i*3]   = (Math.random()-0.5) * 42;
+        sPosArr[i*3+1] = (Math.random()-0.5) * 32;
+        sPosArr[i*3+2] = (Math.random()-0.5) * 16 - 6;
+        sSpds[i]  = Math.random() * 0.5 + 0.08;
+        sPhases[i]= Math.random() * Math.PI * 2;
+      }
+      const starGeo = new THREE.BufferGeometry();
+      starGeo.setAttribute("position", new THREE.BufferAttribute(sPosArr, 3));
+      const makeSprite = (c1: string, c2: string, c3: string) => {
+        const c = document.createElement("canvas"); c.width = c.height = 128;
+        const cx = c.getContext("2d")!;
+        const g = cx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, c1); g.addColorStop(0.2, c2);
+        g.addColorStop(0.6, c3); g.addColorStop(1, "rgba(0,0,0,0)");
+        cx.fillStyle = g; cx.fillRect(0, 0, 128, 128);
+        return new THREE.CanvasTexture(c);
+      };
       const starMat = new THREE.PointsMaterial({
-        size: 0.06, map: makeSprite("rgba(255,240,180,1)", "rgba(201,168,76,0)"),
-        transparent: true, opacity: 0.8,
+        size: 0.07,
+        map: makeSprite("rgba(255,250,200,1)", "rgba(255,220,100,0.6)", "rgba(201,168,76,0)"),
+        transparent: true, opacity: 0.85,
         blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
       });
-      const stars = new THREE.Points(starGeo, starMat);
-      scene.add(stars);
+      scene.add(new THREE.Points(starGeo, starMat));
 
-      // ── GOLD DUST ──────────────────────────────────────────────────
-      const DUST_COUNT = 1500;
-      const dustPos = new Float32Array(DUST_COUNT * 3);
-      const dustSpeeds = new Float32Array(DUST_COUNT);
-      for (let i = 0; i < DUST_COUNT; i++) {
-        dustPos[i*3]   = (Math.random() - 0.5) * 32;
-        dustPos[i*3+1] = (Math.random() - 0.5) * 28;
-        dustPos[i*3+2] = (Math.random() - 0.5) * 6 - 2;
-        dustSpeeds[i]  = Math.random() * 0.12 + 0.02;
+      // Bright large stars scattered in background
+      const BRIGHT = 40;
+      const bPosArr = new Float32Array(BRIGHT * 3);
+      for (let i = 0; i < BRIGHT; i++) {
+        bPosArr[i*3]   = (Math.random()-0.5) * 36;
+        bPosArr[i*3+1] = (Math.random()-0.5) * 28;
+        bPosArr[i*3+2] = (Math.random()-0.5) * 10 - 4;
+      }
+      const bGeo = new THREE.BufferGeometry();
+      bGeo.setAttribute("position", new THREE.BufferAttribute(bPosArr, 3));
+      const bMat = new THREE.PointsMaterial({
+        size: 0.18,
+        map: makeSprite("rgba(255,255,255,1)", "rgba(255,220,120,0.5)", "rgba(201,168,76,0)"),
+        transparent: true, opacity: 0.9,
+        blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+      });
+      scene.add(new THREE.Points(bGeo, bMat));
+
+      // ── GOLD DUST ───────────────────────────────────────────────
+      const DUST = 1800;
+      const dPosArr = new Float32Array(DUST * 3);
+      const dSpds   = new Float32Array(DUST);
+      for (let i = 0; i < DUST; i++) {
+        dPosArr[i*3]   = (Math.random()-0.5) * 36;
+        dPosArr[i*3+1] = (Math.random()-0.5) * 32;
+        dPosArr[i*3+2] = (Math.random()-0.5) * 8 - 2;
+        dSpds[i] = Math.random() * 0.12 + 0.02;
       }
       const dustGeo = new THREE.BufferGeometry();
-      dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+      dustGeo.setAttribute("position", new THREE.BufferAttribute(dPosArr, 3));
       const dustMat = new THREE.PointsMaterial({
-        size: 0.024, map: makeSprite("rgba(201,168,76,1)", "rgba(154,122,48,0)"),
-        transparent: true, opacity: 0.45,
+        size: 0.026,
+        map: makeSprite("rgba(255,200,50,1)", "rgba(201,168,76,0.5)", "rgba(120,90,20,0)"),
+        transparent: true, opacity: 0.5,
         blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
       });
       scene.add(new THREE.Points(dustGeo, dustMat));
 
-      // ── SHOOTING STAR SYSTEM ───────────────────────────────────────
-      let shootTimer = 0;
-      let shootActive = false;
-      let shootProgress = 0;
-      const shootLine = (() => {
-        const g = new THREE.BufferGeometry();
-        g.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0,0,0, 1,0,0]), 3));
-        const m = new THREE.LineBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0,
-          blending: THREE.AdditiveBlending, depthWrite: false });
-        const l = new THREE.Line(g, m);
-        scene.add(l);
-        return { line: l, geo: g, mat: m };
-      })();
-      let shootDir = new THREE.Vector3();
-      let shootOrigin = new THREE.Vector3();
+      // ── SHOOTING STAR ────────────────────────────────────────────
+      let shootTimer = 0, shootActive = false, shootProgress = 0;
+      const shootDir = new THREE.Vector3();
+      const shootOrig = new THREE.Vector3();
+      const sLineGeo = new THREE.BufferGeometry();
+      sLineGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0,0,0,1,0,0]), 3));
+      const sLineMat = new THREE.LineBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false, linewidth: 2 });
+      scene.add(new THREE.Line(sLineGeo, sLineMat));
 
-      // ── Resize ─────────────────────────────────────────────────────
+      // ── RESIZE ──────────────────────────────────────────────────
       const resize = () => {
         if (!canvas.parentElement || !renderer) return;
         const w = canvas.parentElement.clientWidth;
@@ -295,124 +339,120 @@ export function HeroCanvas() {
       resize();
       window.addEventListener("resize", resize);
 
-      // ── Mouse parallax ─────────────────────────────────────────────
+      // ── MOUSE ───────────────────────────────────────────────────
       const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-      const onMouse = (e: MouseEvent) => {
+      window.addEventListener("mousemove", (e) => {
         mouse.tx = (e.clientX / window.innerWidth  - 0.5) * 2;
         mouse.ty = -(e.clientY / window.innerHeight - 0.5) * 2;
-      };
-      window.addEventListener("mousemove", onMouse);
+      });
 
-      // ── Scroll reaction ─────────────────────────────────────────────
+      // ── SCROLL ──────────────────────────────────────────────────
       let scrollY = 0;
-      const onScroll = () => { scrollY = window.scrollY; };
-      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("scroll", () => { scrollY = window.scrollY; }, { passive: true });
 
-      // ── Animate ────────────────────────────────────────────────────
+      // ── CLOCK & TICK ─────────────────────────────────────────────
       const clock = new THREE.Clock();
 
       const tick = () => {
         animId = requestAnimationFrame(tick);
         const t = clock.getElapsedTime();
-        const dt = clock.getDelta ? 0.016 : 0.016;
 
-        // Mouse lerp
-        mouse.x += (mouse.tx - mouse.x) * 0.035;
-        mouse.y += (mouse.ty - mouse.y) * 0.035;
+        // Mouse smooth lerp
+        mouse.x += (mouse.tx - mouse.x) * 0.04;
+        mouse.y += (mouse.ty - mouse.y) * 0.04;
 
-        // Camera position — parallax + scroll zoom
-        const scrollFactor = Math.min(scrollY / 600, 1);
-        const targetZ = 8 + scrollFactor * 2.5;
-        camera.position.x += (mouse.x * 1.2 - camera.position.x) * 0.02;
-        camera.position.y += (mouse.y * 0.7 - camera.position.y) * 0.02;
-        camera.position.z += (targetZ - camera.position.z) * 0.04;
+        // Camera parallax + scroll depth
+        const scrollPct = Math.min(scrollY / 700, 1);
+        camera.position.x += (mouse.x * 1.4 - camera.position.x) * 0.025;
+        camera.position.y += (mouse.y * 0.9 - camera.position.y) * 0.025;
+        camera.position.z += (7.5 + scrollPct * 3.5 - camera.position.z) * 0.035;
         camera.lookAt(0, 0, 0);
 
-        // Central gem — slow Y spin + wobble
-        gem.rotation.y = t * 0.22;
-        gem.rotation.x = Math.sin(t * 0.18) * 0.15;
-        gem.rotation.z = Math.cos(t * 0.13) * 0.08;
+        // Gem rotation — multi-axis graceful spin
+        gem.rotation.y = t * 0.18 + mouse.x * 0.15;
+        gem.rotation.x = Math.sin(t * 0.14) * 0.12 + mouse.y * 0.08;
+        gem.rotation.z = Math.cos(t * 0.11) * 0.06;
+        wireGem.rotation.y = -t * 0.12 + mouse.x * 0.08;
+        wireGem.rotation.x = gem.rotation.x;
+        wireGem.rotation.z = -gem.rotation.z;
 
-        // Shell counter-rotates
-        shell.rotation.y = -t * 0.15;
-        shell.rotation.x = Math.cos(t * 0.2) * 0.2;
+        // Gem scale pulse (subtle breathing)
+        const pulse = 1 + Math.sin(t * 0.7) * 0.025;
+        gem.scale.setScalar(pulse);
+        wireGem.scale.setScalar(pulse * 1.005);
 
-        // Glow pulse
-        glow2Mat.opacity = 0.03 + Math.sin(t * 0.9) * 0.02;
-        auraMat.opacity  = 0.04 + Math.sin(t * 0.6) * 0.015;
-
-        // Orbiting lights — circle the gem
-        orbitLights.forEach(({ light, radius, speed, phase, tilt }) => {
-          const a = t * speed + phase;
-          light.position.set(
-            Math.cos(a) * radius,
-            Math.sin(a * tilt) * 1.5,
-            Math.sin(a) * radius
-          );
+        // Bloom glow — pulse in sync with gem
+        glowMeshes.forEach(({ mat }, i) => {
+          const base = glowLayers[i].op;
+          mat.opacity = base * (0.85 + Math.sin(t * 0.7 + i * 0.4) * 0.15);
+        });
+        // Glow layers face camera
+        glowMeshes.forEach(({ mesh }) => {
+          mesh.quaternion.copy(camera.quaternion);
         });
 
-        // Pulse light intensity
-        orbitLights[0].light.intensity = 10 + Math.sin(t * 1.3) * 3;
-        orbitLights[1].light.intensity = 6  + Math.cos(t * 0.9) * 2;
-        orbitLights[2].light.intensity = 4  + Math.sin(t * 1.7) * 1.5;
+        // Orbiting lights
+        orbitLights.forEach(({ lt, r, spd, ph, tilt }) => {
+          const a = t * spd + ph;
+          lt.position.set(Math.cos(a) * r, Math.sin(a * tilt) * 2, Math.sin(a) * r);
+        });
+        orbitLights[0].lt.intensity = 18 + Math.sin(t * 1.2) * 5;
+        orbitLights[1].lt.intensity = 12 + Math.cos(t * 0.9) * 3;
+        orbitLights[2].lt.intensity = 8  + Math.sin(t * 1.6) * 2;
+        orbitLights[3].lt.intensity = 6  + Math.cos(t * 1.1) * 2;
 
-        // Orbiting rings
-        rings.forEach(({ mesh, speed, pivot }) => {
-          pivot.rotation.y += speed * 0.01;
-          mesh.rotation.z += speed * 0.005;
+        // Orbital rings — pivot rotates + spark travels
+        rings.forEach(({ pivotV, sparkAngles, sparks, speed, radius }, ri) => {
+          pivotV.rotation.y += speed * 0.008;
+          // Update spark positions on ring
+          sparkAngles.forEach((angle, si) => {
+            sparkAngles[si] += speed * 0.025;
+            const a = sparkAngles[si];
+            sparks[si].position.set(Math.cos(a) * radius, 0, Math.sin(a) * radius);
+            // Fade in/out with a pulse
+            (sparks[si].material as THREE.MeshBasicMaterial).opacity =
+              0.7 + Math.sin(t * 3 + ri + si) * 0.3;
+          });
         });
 
-        // Mini gems — orbit + float
-        miniGems.forEach((mg) => {
-          mg.orbitPhase += mg.orbitSpeed;
-          const newX = Math.cos(mg.orbitPhase) * mg.orbitRadius;
-          const newZ = Math.sin(mg.orbitPhase) * mg.orbitRadius * 0.6 - 2;
-          const floatY = mg.basePos.y + Math.sin(t * mg.floatSpeed + mg.floatPhase) * 0.6;
-          mg.mesh.position.set(newX, floatY, newZ);
-          mg.mesh.rotation.x += mg.rotSpeed.x;
-          mg.mesh.rotation.y += mg.rotSpeed.y;
-          mg.mesh.rotation.z += mg.rotSpeed.z;
-        });
-
-        // Stars drift upward
+        // Stars drift
         const sp = starGeo.attributes.position as THREE.BufferAttribute;
-        for (let i = 0; i < STAR_COUNT; i++) {
-          let y = sp.getY(i) + starSpeeds[i] * 0.005;
-          if (y > 15) y = -15;
+        for (let i = 0; i < STARS; i++) {
+          let y = sp.getY(i) + sSpds[i] * 0.004;
+          if (y > 16) y = -16;
           sp.setY(i, y);
-          sp.setX(i, sp.getX(i) + Math.sin(t * starSpeeds[i] * 0.4 + starPhases[i]) * 0.0012);
+          sp.setX(i, sp.getX(i) + Math.sin(t * sSpds[i] * 0.5 + sPhases[i]) * 0.001);
         }
         sp.needsUpdate = true;
 
         // Dust drifts diagonally
         const dp = dustGeo.attributes.position as THREE.BufferAttribute;
-        for (let i = 0; i < DUST_COUNT; i++) {
-          let y = dp.getY(i) + dustSpeeds[i] * 0.003;
-          let x = dp.getX(i) + dustSpeeds[i] * 0.0008;
-          if (y > 14) y = -14;
-          if (x > 16) x = -16;
+        for (let i = 0; i < DUST; i++) {
+          let y = dp.getY(i) + dSpds[i] * 0.003;
+          let x = dp.getX(i) + dSpds[i] * 0.0007;
+          if (y > 16) y = -16;
+          if (x > 18) x = -18;
           dp.setY(i, y); dp.setX(i, x);
         }
         dp.needsUpdate = true;
 
         // Shooting star
         shootTimer += 0.016;
-        if (!shootActive && shootTimer > 6 + Math.random() * 8) {
+        if (!shootActive && shootTimer > 5 + Math.random() * 9) {
           shootActive = true; shootProgress = 0; shootTimer = 0;
-          shootOrigin.set(-14 + Math.random() * 4, 6 + Math.random() * 4, -3);
-          shootDir.set(12 + Math.random() * 6, -7 - Math.random() * 5, 1).normalize();
-          shootLine.mat.opacity = 0.9;
+          shootOrig.set(-16 + Math.random() * 4, 8 + Math.random() * 4, -4);
+          shootDir.set(14 + Math.random() * 6, -8 - Math.random() * 6, 2).normalize();
+          sLineMat.opacity = 0.95;
         }
         if (shootActive) {
-          shootProgress += 0.04;
-          const start = shootOrigin.clone().addScaledVector(shootDir, shootProgress * 18 - 4);
-          const end   = shootOrigin.clone().addScaledVector(shootDir, shootProgress * 18);
-          const pa = shootLine.geo.attributes.position as THREE.BufferAttribute;
-          pa.setXYZ(0, start.x, start.y, start.z);
-          pa.setXYZ(1, end.x, end.y, end.z);
+          shootProgress += 0.035;
+          const s = shootOrig.clone().addScaledVector(shootDir, shootProgress * 20 - 5);
+          const e = shootOrig.clone().addScaledVector(shootDir, shootProgress * 20);
+          const pa = sLineGeo.attributes.position as THREE.BufferAttribute;
+          pa.setXYZ(0, s.x, s.y, s.z); pa.setXYZ(1, e.x, e.y, e.z);
           pa.needsUpdate = true;
-          shootLine.mat.opacity = Math.max(0, 0.9 - shootProgress * 1.1);
-          if (shootProgress >= 1) { shootActive = false; shootLine.mat.opacity = 0; }
+          sLineMat.opacity = Math.max(0, 0.95 - shootProgress * 1.2);
+          if (shootProgress >= 1) { shootActive = false; sLineMat.opacity = 0; }
         }
 
         renderer?.render(scene, camera);
@@ -422,8 +462,6 @@ export function HeroCanvas() {
       cleanupFn = () => {
         cancelAnimationFrame(animId);
         window.removeEventListener("resize", resize);
-        window.removeEventListener("mousemove", onMouse);
-        window.removeEventListener("scroll", onScroll);
         renderer?.dispose();
       };
     };
@@ -436,25 +474,58 @@ export function HeroCanvas() {
   return <canvas ref={canvasRef} id="hero-canvas" />;
 }
 
+// ── CSS Fallback (no WebGL) ───────────────────────────────────
 function CSSFallback() {
   return (
     <div id="hero-canvas" style={{
       position:"absolute", top:0, left:0, width:"100%", height:"100%",
-      background:"radial-gradient(ellipse at 30% 40%, rgba(201,168,76,0.12) 0%, transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(201,168,76,0.07) 0%, transparent 50%), #050300",
-      overflow:"hidden",
+      background: [
+        "radial-gradient(ellipse at 25% 35%, rgba(201,168,76,0.18) 0%, transparent 50%)",
+        "radial-gradient(ellipse at 75% 65%, rgba(255,180,50,0.10) 0%, transparent 45%)",
+        "radial-gradient(ellipse at 50% 20%, rgba(255,215,0,0.06) 0%, transparent 40%)",
+        "#050300",
+      ].join(", "),
+      overflow: "hidden",
     }}>
       <style>{`
-        @keyframes fgem { 0%,100%{transform:translateY(0) rotate(0deg);opacity:.15} 50%{transform:translateY(-30px) rotate(180deg);opacity:.3} }
-        @keyframes forb { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        @keyframes gem-float { 0%,100%{transform:translateY(0) rotate(45deg)} 50%{transform:translateY(-24px) rotate(225deg)} }
+        @keyframes gem-pulse { 0%,100%{opacity:.18;transform:scale(1) rotate(45deg)} 50%{opacity:.35;transform:scale(1.1) rotate(225deg)} }
+        @keyframes ring-spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        @keyframes particle-rise { 0%{transform:translateY(0);opacity:.6} 100%{transform:translateY(-80px);opacity:0} }
       `}</style>
-      {Array.from({length:6}).map((_,i)=>(
+
+      {/* Animated rings */}
+      {[{s:180,op:.25,dur:12,d:0},{s:260,op:.18,dur:18,d:2},{s:340,op:.12,dur:24,d:5}].map((r,i)=>(
+        <div key={i} style={{
+          position:"absolute", top:"50%", left:"50%",
+          width:r.s, height:r.s, borderRadius:"50%",
+          border:`1px solid rgba(201,168,76,${r.op})`,
+          transform:"translate(-50%,-50%)",
+          animation:`ring-spin ${r.dur}s ${r.d}s linear infinite`,
+        }}/>
+      ))}
+
+      {/* Central gem shape */}
+      <div style={{
+        position:"absolute", top:"50%", left:"50%",
+        width:80, height:80,
+        background:"linear-gradient(135deg, #ffd700, #c9a84c, #ff8c00)",
+        clipPath:"polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)",
+        transform:"translate(-50%,-50%)",
+        boxShadow:"0 0 60px 20px rgba(201,168,76,0.4)",
+        animation:"gem-pulse 4s ease-in-out infinite",
+      }}/>
+
+      {/* Floating particles */}
+      {Array.from({length:30}).map((_,i)=>(
         <div key={i} style={{
           position:"absolute",
-          left:`${15+i*14}%`, top:`${20+i*10}%`,
-          width:12+i*4, height:12+i*4,
-          background:"#C9A84C",
-          clipPath:"polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
-          opacity:.12, animation:`fgem ${5+i*2}s ${i}s ease-in-out infinite`,
+          left:`${Math.random()*100}%`,
+          top:`${60+Math.random()*40}%`,
+          width:Math.random()*4+1, height:Math.random()*4+1,
+          borderRadius:"50%", background:"#C9A84C",
+          opacity: Math.random()*0.6+0.2,
+          animation:`particle-rise ${Math.random()*6+4}s ${Math.random()*4}s ease-out infinite`,
         }}/>
       ))}
     </div>

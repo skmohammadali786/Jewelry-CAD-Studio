@@ -1,11 +1,13 @@
 /**
  * API client for the admin panel.
  *
- * In development (Replit): API is at /api (same origin, routed by proxy)
- * In production (Vercel): Set VITE_API_BASE_URL to your API Vercel project URL
- *   e.g.  VITE_API_BASE_URL=https://your-api.vercel.app
+ * In development (Replit): leave VITE_API_BASE_URL unset — proxy handles /api
+ * In production (Vercel): set VITE_API_BASE_URL to your Render API root URL
+ *   e.g.  VITE_API_BASE_URL=https://jewelry-cad-studio.onrender.com
+ *   (with OR without a trailing /api — both are handled automatically)
  */
-const BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "") + "/api";
+const _rawBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "").replace(/\/api$/, "");
+const BASE = (_rawBase || "") + "/api";
 
 function getToken(): string | null {
   return localStorage.getItem("aj_admin_token");

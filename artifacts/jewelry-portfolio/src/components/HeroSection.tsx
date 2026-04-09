@@ -3,32 +3,111 @@ import { gsap } from "gsap";
 import { HeroCanvas } from "./HeroCanvas";
 import { useContent } from "../hooks/use-content";
 
+// Animated counter
+function animateCount(el: HTMLElement, end: number, suffix: string, dur: number) {
+  let start = 0;
+  const step = (end / (dur / 16));
+  const run = () => {
+    start = Math.min(start + step, end);
+    el.textContent = Math.floor(start) + suffix;
+    if (start < end) requestAnimationFrame(run);
+  };
+  requestAnimationFrame(run);
+}
+
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const { hero } = useContent();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.15 });
+      const tl = gsap.timeline({ delay: 0.1 });
 
-      tl.to(".hero-logo",     { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0)
-        .to(".hero-eyebrow",  { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.1)
-        .to(".hero-title",    { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.2)
-        .to(".hero-subtitle", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.35)
-        .to(".hero-ctas",     { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.48)
-        .to(".hero-float-stat", { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.6)" }, 0.6);
+      // Scanline reveal on logo
+      tl.fromTo(".hero-logo",
+        { opacity: 0, scale: 0.7, rotationY: -90 },
+        { opacity: 1, scale: 1, rotationY: 0, duration: 1.0, ease: "back.out(1.4)" }, 0
+      );
+
+      // Eyebrow — letter spacing collapse
+      tl.fromTo(".hero-eyebrow",
+        { opacity: 0, letterSpacing: "16px", y: 12 },
+        { opacity: 1, letterSpacing: "5px", y: 0, duration: 0.9, ease: "power4.out" }, 0.3
+      );
+
+      // Title — split by word, each word flips in
+      const words = document.querySelectorAll(".hero-title-word");
+      if (words.length) {
+        tl.fromTo(words,
+          { opacity: 0, y: 60, rotateX: -80, transformPerspective: 800 },
+          { opacity: 1, y: 0, rotateX: 0, duration: 0.8, stagger: 0.12, ease: "power4.out" }, 0.45
+        );
+      }
+
+      // Subtitle fade
+      tl.fromTo(".hero-subtitle",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.85
+      );
+
+      // CTAs pop in
+      tl.fromTo(".hero-cta",
+        { opacity: 0, y: 20, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.14, ease: "back.out(1.8)" }, 1.05
+      );
+
+      // Floating stats
+      tl.fromTo(".hero-float-stat",
+        { opacity: 0, y: 24, scale: 0.88 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12, ease: "back.out(1.6)" }, 1.2
+      );
+
+      // Gold underline grows
+      tl.fromTo(".hero-title-underline",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.9, ease: "power3.inOut" }, 0.95
+      );
+
+      // Shimmer line
+      tl.to(".hero-shimmer", { opacity: 1, duration: 0.5 }, 1.1);
+
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
 
+  // Counter animation on stats when they enter view
+  useEffect(() => {
+    const statDefs = [
+      { cls: ".hero-stat-0", end: 500, suffix: "+" },
+      { cls: ".hero-stat-1", end: 48,  suffix: "h" },
+      { cls: ".hero-stat-2", end: 100, suffix: "%" },
+      { cls: ".hero-stat-3", end: 7,   suffix: "+" },
+    ];
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          statDefs.forEach(({ cls, end, suffix }) => {
+            const el = document.querySelector(cls) as HTMLElement | null;
+            if (el) animateCount(el, end, suffix, 1800);
+          });
+          obs.disconnect();
+        }
+      });
+    }, { threshold: 0.4 });
+
+    const target = document.querySelector(".hero-float-stat");
+    if (target) obs.observe(target);
+    return () => obs.disconnect();
+  }, []);
+
   const scrollToDesigns = () => {
     document.getElementById("designs")?.scrollIntoView({ behavior: "smooth" });
   };
-  const scrollToContact = () => {
-    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
-  };
+
+  // Split the title into words for animation
+  const titleWords = (hero.title as string).split(" ");
 
   return (
     <section id="home" className="hero" ref={sectionRef}>
@@ -36,25 +115,45 @@ export function HeroSection() {
       <div className="hero-overlay" />
       <div className="hero-gradient-bottom" />
 
-      <div className="hero-content" ref={contentRef}>
+      {/* Animated grid overlay */}
+      <div className="hero-grid-overlay" />
+
+      {/* Animated corner brackets */}
+      <div className="hero-bracket hero-bracket--tl" />
+      <div className="hero-bracket hero-bracket--tr" />
+      <div className="hero-bracket hero-bracket--bl" />
+      <div className="hero-bracket hero-bracket--br" />
+
+      <div className="hero-content">
         <img
           src="/assets/logo.png"
           alt="Amirul Jewelry CAD Studio"
           className="hero-logo"
-          style={{ transform: "translateY(20px)" }}
+          style={{ opacity: 0 }}
         />
-        <p className="hero-eyebrow" style={{ transform: "translateY(20px)" }}>
+        <p className="hero-eyebrow" style={{ opacity: 0 }}>
           {hero.eyebrow}
         </p>
-        <h1 className="hero-title" style={{ transform: "translateY(20px)" }}>
-          {hero.title}
-        </h1>
-        <p className="hero-subtitle" style={{ transform: "translateY(20px)" }}>
+
+        <div className="hero-title-wrap">
+          <h1 className="hero-title">
+            {titleWords.map((word, i) => (
+              <span key={i} className="hero-title-word" style={{ opacity: 0, display: "inline-block", marginRight: "0.28em" }}>
+                {word}
+              </span>
+            ))}
+          </h1>
+          <div className="hero-title-underline" style={{ transformOrigin: "left center" }} />
+        </div>
+
+        <div className="hero-shimmer" style={{ opacity: 0 }} />
+
+        <p className="hero-subtitle" style={{ opacity: 0 }}>
           {hero.subtitle}
         </p>
 
-        <div className="hero-ctas" style={{ transform: "translateY(20px)", opacity: 0 }}>
-          <button className="hero-cta hero-cta-primary" onClick={scrollToDesigns}>
+        <div className="hero-cta-row">
+          <button className="hero-cta hero-cta-primary" style={{ opacity: 0 }} onClick={scrollToDesigns}>
             <DiamondIcon />
             Explore Designs
           </button>
@@ -63,7 +162,7 @@ export function HeroSection() {
             target="_blank"
             rel="noopener noreferrer"
             className="hero-cta hero-cta-wa"
-            onClick={scrollToContact}
+            style={{ opacity: 0 }}
           >
             <WhatsAppIcon />
             WhatsApp Us
@@ -72,20 +171,24 @@ export function HeroSection() {
       </div>
 
       {/* Floating stat badges */}
-      <div className="hero-float-stat hero-float-stat--tl" style={{ opacity: 0, transform: "translateY(20px) scale(0.9)" }}>
-        <span className="hero-float-val">500+</span>
+      <div className="hero-float-stat hero-float-stat--tl" style={{ opacity: 0 }}>
+        <DiamondDecorIcon />
+        <span className="hero-stat-0 hero-float-val">500+</span>
         <span className="hero-float-lbl">Designs Delivered</span>
       </div>
-      <div className="hero-float-stat hero-float-stat--tr" style={{ opacity: 0, transform: "translateY(20px) scale(0.9)" }}>
-        <span className="hero-float-val">48h</span>
+      <div className="hero-float-stat hero-float-stat--tr" style={{ opacity: 0 }}>
+        <DiamondDecorIcon />
+        <span className="hero-stat-1 hero-float-val">48h</span>
         <span className="hero-float-lbl">Avg. Turnaround</span>
       </div>
-      <div className="hero-float-stat hero-float-stat--bl" style={{ opacity: 0, transform: "translateY(20px) scale(0.9)" }}>
-        <span className="hero-float-val">100%</span>
+      <div className="hero-float-stat hero-float-stat--bl" style={{ opacity: 0 }}>
+        <DiamondDecorIcon />
+        <span className="hero-stat-2 hero-float-val">100%</span>
         <span className="hero-float-lbl">Client Satisfaction</span>
       </div>
-      <div className="hero-float-stat hero-float-stat--br" style={{ opacity: 0, transform: "translateY(20px) scale(0.9)" }}>
-        <span className="hero-float-val">7+</span>
+      <div className="hero-float-stat hero-float-stat--br" style={{ opacity: 0 }}>
+        <DiamondDecorIcon />
+        <span className="hero-stat-3 hero-float-val">7+</span>
         <span className="hero-float-lbl">Years Experience</span>
       </div>
 
@@ -99,13 +202,18 @@ export function HeroSection() {
 
 function DiamondIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M6 3h12l4 6-10 13L2 9z" />
-      <path d="M2 9h20" />
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M6 3h12l4 6-10 13L2 9z" /><path d="M2 9h20" />
     </svg>
   );
 }
-
+function DiamondDecorIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ color: "var(--gold)", opacity: 0.8, marginBottom: "4px" }}>
+      <path d="M12 2L22 9 12 22 2 9Z" />
+    </svg>
+  );
+}
 function WhatsAppIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

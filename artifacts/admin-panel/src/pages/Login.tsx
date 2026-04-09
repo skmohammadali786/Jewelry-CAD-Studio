@@ -31,7 +31,7 @@ export default function Login({ onLogin }: Props) {
       <div className="login-bg" />
       <div className="login-card">
         <div className="login-logo">
-          <img src="/assets/logo.png" alt="Logo" />
+          <img src={`${import.meta.env.BASE_URL}assets/logo.png`} alt="Logo" />
         </div>
         <h1 className="login-title">Admin Access</h1>
         <p className="login-sub">Amirul Jewelry CAD Studio</p>

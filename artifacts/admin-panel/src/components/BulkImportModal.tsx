@@ -161,7 +161,8 @@ export default function BulkImportModal({ onClose, onImported }: Props) {
       setResult({ imported: res.imported, errors: res.errors });
       onImported(res.designs);
     } catch (err) {
-      alert("Import failed. Please check the API connection.");
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert(`Import failed: ${message}`);
     } finally {
       setImporting(false);
     }

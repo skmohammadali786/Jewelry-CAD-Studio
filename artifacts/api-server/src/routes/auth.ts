@@ -3,7 +3,12 @@ import { signAdminToken } from "../middlewares/auth.js";
 
 const router = Router();
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "AmirulCAD@2025";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  console.error("FATAL: ADMIN_PASSWORD environment variable is not set.");
+  process.exit(1);
+}
 
 router.post("/admin/login", (req, res) => {
   const { password } = req.body as { password?: string };

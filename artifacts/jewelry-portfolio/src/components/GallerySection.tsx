@@ -17,6 +17,10 @@ const categoryColors: Record<string, string> = {
 export function GallerySection() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const eyebrowRef = useRef<HTMLSpanElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const dividerRef = useRef<HTMLDivElement>(null);
+  const pillsRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [selectedDesign, setSelectedDesign] = useState<Design | null>(null);
   const [activeFilter, setActiveFilter] = useState("All");
@@ -26,26 +30,75 @@ export function GallerySection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(headerRef.current, {
-        opacity: 0,
-        y: 60,
-        duration: 1.1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: headerRef.current, start: "top 80%", once: true },
-      });
 
+      /* Eyebrow — fade + letter-spacing collapse */
+      gsap.fromTo(eyebrowRef.current,
+        { opacity: 0, letterSpacing: "10px", y: 20 },
+        {
+          opacity: 1, letterSpacing: "4px", y: 0,
+          duration: 1.3, ease: "power4.out",
+          scrollTrigger: { trigger: eyebrowRef.current, start: "top 85%", once: true }
+        }
+      );
+
+      /* Title — slide up with perspective flip */
+      gsap.fromTo(titleRef.current,
+        { opacity: 0, y: 100, rotateX: -30, transformPerspective: 800 },
+        {
+          opacity: 1, y: 0, rotateX: 0,
+          duration: 1.1, ease: "power4.out",
+          scrollTrigger: { trigger: titleRef.current, start: "top 83%", once: true }
+        }
+      );
+
+      /* Divider — width grows */
+      gsap.fromTo(dividerRef.current,
+        { scaleX: 0, transformOrigin: "center" },
+        {
+          scaleX: 1, duration: 1.4, ease: "power3.inOut",
+          scrollTrigger: { trigger: dividerRef.current, start: "top 85%", once: true }
+        }
+      );
+
+      /* Filter pills — pop in sequentially */
+      if (pillsRef.current) {
+        gsap.fromTo(
+          pillsRef.current.querySelectorAll(".filter-pill"),
+          { opacity: 0, scale: 0.7, y: 20 },
+          {
+            opacity: 1, scale: 1, y: 0,
+            duration: 0.6, stagger: 0.07, ease: "back.out(2)",
+            scrollTrigger: { trigger: pillsRef.current, start: "top 88%", once: true }
+          }
+        );
+      }
+
+      /* Cards — wave reveal from bottom-left to top-right */
       const items = gridRef.current?.querySelectorAll(".gallery-card");
       if (items) {
-        gsap.from(items, {
-          opacity: 0,
-          y: 80,
-          scale: 0.95,
-          duration: 0.9,
-          stagger: 0.1,
-          ease: "power3.out",
-          scrollTrigger: { trigger: gridRef.current, start: "top 80%", once: true },
-        });
+        gsap.fromTo(items,
+          { opacity: 0, y: 120, scale: 0.85, rotateY: 8 },
+          {
+            opacity: 1, y: 0, scale: 1, rotateY: 0,
+            duration: 1, stagger: { amount: 0.9, from: "start" },
+            ease: "power4.out",
+            scrollTrigger: { trigger: gridRef.current, start: "top 78%", once: true }
+          }
+        );
       }
+
+      /* Subtle parallax on section title */
+      gsap.to(headerRef.current, {
+        yPercent: -15,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "30% top",
+          scrub: 1,
+        }
+      });
+
     }, sectionRef);
 
     return () => ctx.revert();
@@ -54,15 +107,14 @@ export function GallerySection() {
   return (
     <section id="designs" className="gallery-section" ref={sectionRef}>
       <div className="gallery-header" ref={headerRef}>
-        <span className="section-eyebrow">Portfolio</span>
-        <h2 className="section-title">Design Gallery</h2>
-        <div className="section-divider" />
+        <span className="section-eyebrow" ref={eyebrowRef}>Portfolio</span>
+        <h2 className="section-title" ref={titleRef}>Design Gallery</h2>
+        <div className="section-divider" ref={dividerRef} />
         <p className="gallery-subtitle">
           Every piece engineered to sub-millimeter accuracy — ready for casting, printing, and production.
         </p>
 
-        {/* Category filter pills */}
-        <div className="filter-pills">
+        <div className="filter-pills" ref={pillsRef}>
           {categories.map((cat) => (
             <button
               key={cat}
@@ -99,8 +151,8 @@ function GalleryCard({ design, onClick }: { design: Design; onClick: () => void 
     const card = cardRef.current;
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    const x = ((e.clientY - rect.top) / rect.height - 0.5) * 12;
-    const y = -((e.clientX - rect.left) / rect.width - 0.5) * 12;
+    const x = ((e.clientY - rect.top) / rect.height - 0.5) * 14;
+    const y = -((e.clientX - rect.left) / rect.width - 0.5) * 14;
     setTilt({ x, y });
   };
 
@@ -124,51 +176,35 @@ function GalleryCard({ design, onClick }: { design: Design; onClick: () => void 
       onMouseLeave={handleMouseLeave}
       style={{
         transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        transition: hovered ? "transform 0.1s ease" : "transform 0.5s ease",
+        transition: hovered ? "transform 0.1s ease" : "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)",
       }}
     >
-      {/* Glow border on hover */}
       <div className="card-glow" style={{ "--glow-color": catColor } as React.CSSProperties} />
 
-      {/* Image */}
       <div className="card-image-wrap">
         <img src={design.image} alt={design.name} loading="lazy" className="card-img" />
         <div className="card-img-shine" />
-
-        {/* Category tag */}
-        <div className="card-category-tag" style={{ background: catColor }}>
-          {design.category}
-        </div>
-
-        {/* Code badge */}
+        <div className="card-category-tag" style={{ background: catColor }}>{design.category}</div>
         <div className="card-code-badge">{design.code}</div>
-
-        {/* Hover overlay */}
         <div className="card-hover-overlay">
           <div className="card-hover-content">
             <div className="card-view-btn">
               <EyeIcon />
               <span>View Details</span>
             </div>
-            <div className="card-hover-meta">
-              <span>{design.material}</span>
-            </div>
+            <div className="card-hover-meta"><span>{design.material}</span></div>
           </div>
         </div>
       </div>
 
-      {/* Card footer */}
       <div className="card-footer">
         <div className="card-footer-top">
           <div>
             <p className="card-name">{design.name}</p>
             <p className="card-style">{design.style}</p>
           </div>
-          <div className="card-arrow">
-            <ArrowIcon />
-          </div>
+          <div className="card-arrow"><ArrowIcon /></div>
         </div>
-
         <div className="card-footer-bottom">
           <div className="card-material-pill">
             <GoldDotIcon color={catColor} />
@@ -196,7 +232,6 @@ function EyeIcon() {
     </svg>
   );
 }
-
 function ArrowIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -204,11 +239,9 @@ function ArrowIcon() {
     </svg>
   );
 }
-
 function GoldDotIcon({ color }: { color: string }) {
   return <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, display: "inline-block", flexShrink: 0 }} />;
 }
-
 function WhatsAppMiniIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">

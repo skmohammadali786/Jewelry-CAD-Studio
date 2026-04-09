@@ -10,14 +10,14 @@ export function HeroSection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 1.9 });
+      const tl = gsap.timeline({ delay: 0.15 });
 
-      tl.to(".hero-logo",     { opacity: 1, y: 0, duration: 1,   ease: "power3.out" }, 0)
-        .to(".hero-eyebrow",  { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.15)
-        .to(".hero-title",    { opacity: 1, y: 0, duration: 1,   ease: "power3.out" }, 0.3)
-        .to(".hero-subtitle", { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.5)
-        .to(".hero-ctas",     { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.65)
-        .to(".hero-float-stat", { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12, ease: "back.out(1.6)" }, 0.85);
+      tl.to(".hero-logo",     { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0)
+        .to(".hero-eyebrow",  { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.1)
+        .to(".hero-title",    { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.2)
+        .to(".hero-subtitle", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.35)
+        .to(".hero-ctas",     { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.48)
+        .to(".hero-float-stat", { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.6)" }, 0.6);
     }, sectionRef);
 
     return () => ctx.revert();

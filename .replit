@@ -50,4 +50,3 @@ externalPort = 3001
 [userenv]
 
 [userenv.shared]
-ADMIN_PASSWORD = "AmirulCAD@2025"

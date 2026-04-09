@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { designs, type Design } from "../data/designs";
+import { designs as staticDesigns, type Design } from "../data/designs";
 import { DesignModal } from "./DesignModal";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -24,6 +24,16 @@ export function GallerySection() {
   const gridRef = useRef<HTMLDivElement>(null);
   const [selectedDesign, setSelectedDesign] = useState<Design | null>(null);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [designs, setDesigns] = useState<Design[]>(staticDesigns);
+
+  useEffect(() => {
+    fetch("/api/designs")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: unknown) => {
+        if (Array.isArray(data) && data.length > 0) setDesigns(data as Design[]);
+      })
+      .catch(() => {});
+  }, []);
 
   const categories = ["All", ...Array.from(new Set(designs.map((d) => d.category)))];
   const filtered = activeFilter === "All" ? designs : designs.filter((d) => d.category === activeFilter);

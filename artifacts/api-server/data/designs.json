@@ -1,0 +1,74 @@
+{
+  "designs": [
+    {
+      "id": "aj-001",
+      "code": "AJ-001",
+      "name": "Celestial Solitaire Ring",
+      "category": "Ring",
+      "material": "18K Gold / Platinum",
+      "style": "Contemporary Solitaire",
+      "description": "An exquisite solitaire ring design featuring a precision-cut central stone setting with delicate milgrain detailing along the band. This CAD model captures every facet with mathematical accuracy, ready for casting in gold or platinum.",
+      "image": "/assets/images/AJ-001.jpg"
+    },
+    {
+      "id": "aj-002",
+      "code": "AJ-002",
+      "name": "Eternal Bloom Necklace",
+      "category": "Necklace",
+      "material": "18K White Gold",
+      "style": "Floral Elegance",
+      "description": "A statement floral necklace rendered in stunning detail — each petal sculpted to perfection with organic curves and precise gemstone placements. The CAD design allows for flawless replication across every piece produced.",
+      "image": "/assets/images/AJ-002.jpg"
+    },
+    {
+      "id": "aj-003",
+      "code": "AJ-003",
+      "name": "Heritage Filigree Earrings",
+      "category": "Earrings",
+      "material": "22K Gold",
+      "style": "Traditional Filigree",
+      "description": "Inspired by centuries-old Indian jewelry traditions, these filigree earrings blend cultural heritage with modern CAD precision. Every wire element and granule is individually modeled for a truly handcrafted appearance.",
+      "image": "/assets/images/AJ-003.jpg"
+    },
+    {
+      "id": "aj-004",
+      "code": "AJ-004",
+      "name": "Regal Pavé Bracelet",
+      "category": "Bracelet",
+      "material": "18K Rose Gold",
+      "style": "Pavé Setting",
+      "description": "A luxurious pavé bracelet where hundreds of micro-set stones create a continuous shimmer effect. The CAD model precisely maps every stone seat, ensuring perfect alignment and maximum light reflection.",
+      "image": "/assets/images/AJ-004.jpg"
+    },
+    {
+      "id": "aj-005",
+      "code": "AJ-005",
+      "name": "Aurora Halo Pendant",
+      "category": "Pendant",
+      "material": "Platinum / Diamond",
+      "style": "Halo Design",
+      "description": "Inspired by the northern lights, this halo pendant features a central medallion surrounded by a cascade of smaller stones. The 3D CAD model enables exact proportional scaling for any stone size requirement.",
+      "image": "/assets/images/AJ-005.jpg"
+    },
+    {
+      "id": "aj-006",
+      "code": "AJ-006",
+      "name": "Sovereign Cocktail Ring",
+      "category": "Ring",
+      "material": "18K Gold / Emerald",
+      "style": "Cocktail / Statement",
+      "description": "A bold cocktail ring designed to command attention. The architectural structure combines geometric precision with flowing organic forms, creating a wearable sculpture that sits comfortably on the finger.",
+      "image": "/assets/images/AJ-006.jpg"
+    },
+    {
+      "id": "aj-007",
+      "code": "AJ-007",
+      "name": "Luminary Drop Earrings",
+      "category": "Earrings",
+      "material": "18K Gold / Pearl",
+      "style": "Drop / Chandelier",
+      "description": "Elegant drop earrings with a graceful cascade design that moves beautifully with the wearer. Each component is engineered for perfect balance and articulation, capturing the timeless beauty of fine jewelry in precise CAD form.",
+      "image": "/assets/images/AJ-007.jpg"
+    }
+  ]
+}
